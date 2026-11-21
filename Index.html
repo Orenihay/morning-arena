@@ -315,6 +315,15 @@
       flex-shrink: 0;
       transition: border-color 0.3s, box-shadow 0.3s;
     }
+    .topbar-date {
+      display:flex; flex-direction:column; align-items:center; gap:1px;
+      background:var(--glass); border:1px solid var(--glass-border);
+      border-radius:var(--r-sm); padding:5px 10px;
+      cursor:pointer; transition:.2s; flex-shrink:0;
+    }
+    .topbar-date:hover { background:var(--glass-hi); border-color:var(--acc); }
+    .topbar-day  { font-size:0.68rem; font-weight:800; color:var(--acc); letter-spacing:.04em; }
+    .topbar-dnum { font-size:0.78rem; font-weight:700; color:var(--tx); }
 
     /* =============================================
        HUD CARD
@@ -804,6 +813,10 @@
   <div class="top-bar">
     <button class="back-btn" onclick="backToProfiles()">← החלף שחקן</button>
     <img id="topAvatarImg" class="topbar-avatar" src="" alt="" aria-hidden="true">
+    <button class="topbar-date" id="topbarDateBtn" onclick="switchTab('schedule')">
+      <span class="topbar-day"  id="topbarDay">יום א'</span>
+      <span class="topbar-dnum" id="topbarDnum">--/--</span>
+    </button>
     <div class="streak-badge" id="streakBadge">
       <span class="fire-icon">🔥</span>
       <span id="streakCount">0 ימים</span>
@@ -1008,6 +1021,12 @@
     var _srcEl   = document.querySelector(_wrapSel + ' .avatar-face img');
     var _topAvEl = document.getElementById('topAvatarImg');
     if (_topAvEl && _srcEl) _topAvEl.src = _srcEl.src;
+    var _d = new Date();
+    var _dn = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+    var _dayEl = document.getElementById('topbarDay');
+    var _numEl = document.getElementById('topbarDnum');
+    if (_dayEl) _dayEl.textContent = 'יום ' + _dn[_d.getDay()];
+    if (_numEl) _numEl.textContent = _d.getDate() + '.' + (_d.getMonth()+1);
     document.getElementById('profileScreen').style.display = 'none';
     document.getElementById('mainApp').classList.add('active');
 
