@@ -307,6 +307,14 @@
       0% { transform: scale(1) rotate(-4deg); }
       100%{ transform: scale(1.25) rotate(4deg); }
     }
+    .topbar-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--acc);
+      box-shadow: 0 0 10px var(--acc-glow);
+      flex-shrink: 0;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
 
     /* =============================================
        HUD CARD
@@ -765,6 +773,7 @@
   <!-- Top Bar -->
   <div class="top-bar">
     <button class="back-btn" onclick="backToProfiles()">← החלף שחקן</button>
+    <img id="topAvatarImg" class="topbar-avatar" src="" alt="" aria-hidden="true">
     <div class="streak-badge" id="streakBadge">
       <span class="fire-icon">🔥</span>
       <span id="streakCount">0 ימים</span>
@@ -961,6 +970,10 @@
     }
 
     document.getElementById('nameDisplay').textContent = userName;
+    var _wrapSel = userName === 'אלון' ? '.alon-wrap' : '.eitan-wrap';
+    var _srcEl   = document.querySelector(_wrapSel + ' .avatar-face img');
+    var _topAvEl = document.getElementById('topAvatarImg');
+    if (_topAvEl && _srcEl) _topAvEl.src = _srcEl.src;
     document.getElementById('profileScreen').style.display = 'none';
     document.getElementById('mainApp').classList.add('active');
 
