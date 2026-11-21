@@ -593,6 +593,36 @@
       font-weight:800; font-size:0.88rem; cursor:pointer; transition:.2s;
     }
     .period-btn.active { background:var(--glass); color:var(--acc); border:1px solid rgba(0,212,255,.25); }
+    /* ── SCHEDULE ───────────────────────────────── */
+    .sched-wrap { display:none; flex-direction:column; gap:12px; padding-bottom:16px; }
+    .sched-wrap.active { display:flex; animation: fadeUp 0.38s ease; }
+    .sched-day-tabs { display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; }
+    .sched-day-tabs::-webkit-scrollbar { display:none; }
+    .sched-day-tab {
+      flex-shrink:0; padding:8px 14px; border-radius:99px;
+      border:1.5px solid transparent; background:var(--glass);
+      color:var(--tx-3); font-weight:700; font-size:0.82rem;
+      cursor:pointer; transition:.2s; font-family:inherit;
+    }
+    .sched-day-tab.today-mark { border-color:var(--acc); color:var(--acc); }
+    .sched-day-tab.active { background:var(--acc); color:var(--bg); border-color:transparent; }
+    .sched-cards { display:flex; flex-direction:column; gap:8px; }
+    .sched-card {
+      display:flex; align-items:center; gap:12px;
+      background:var(--glass); border:1px solid var(--glass-border);
+      border-radius:var(--r-md); padding:13px 16px;
+      animation: fadeUp 0.32s ease both;
+    }
+    .sched-num {
+      width:28px; height:28px; border-radius:50%; flex-shrink:0;
+      background:var(--acc); color:var(--bg);
+      display:flex; align-items:center; justify-content:center;
+      font-weight:900; font-size:0.8rem;
+    }
+    .sched-emoji { font-size:1.4rem; flex-shrink:0; line-height:1; }
+    .sched-subject { font-weight:700; font-size:0.95rem; color:var(--tx); flex:1; }
+    .sched-grade { font-size:0.78rem; color:var(--tx-3); margin-bottom:-4px; letter-spacing:.04em; }
+    .sched-empty { text-align:center; color:var(--tx-3); padding:32px 16px; font-size:0.92rem; }
 
     .kpi-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     .kpi-box {
@@ -811,6 +841,7 @@
     <div class="tabs-pill" id="tabsPill"></div>
     <button class="tab-btn active" id="tabToday" onclick="switchTab('today')">⚡ משימות היום</button>
     <button class="tab-btn"        id="tabHist"  onclick="switchTab('history')">📊 היסטוריה</button>
+    <button class="tab-btn"        id="tabSched" onclick="switchTab('schedule')">📅 מערכת</button>
   </div>
 
   <!-- Today Content -->
@@ -838,6 +869,9 @@
     </div>
     <div class="tasks-list" id="histList"></div>
   </div>
+
+  <!-- Schedule Content -->
+  <div class="sched-wrap" id="schedContent"></div>
 
 </div>
 
@@ -1186,7 +1220,7 @@
   function positionPill(tab) {
     const wrap = document.getElementById('tabsWrap');
     const pill = document.getElementById('tabsPill');
-    const btn  = document.getElementById(tab === 'today' ? 'tabToday' : 'tabHist');
+    const btn  = document.getElementById(tab === 'today' ? 'tabToday' : tab === 'history' ? 'tabHist' : 'tabSched');
     if (!btn || !wrap) return;
     const wr = wrap.getBoundingClientRect();
     const br = btn.getBoundingClientRect();
@@ -1194,13 +1228,92 @@
     pill.style.width = br.width + 'px';
   }
 
+  /* ── SCHEDULE DATA ─────────────────────────────── */
+  const SCHEDULES = {
+    'אלון': { grade:"ד'1", days:{
+      'ראשון':['חינוך','מתמטיקה','אנגלית','מדעים','חשבה יצירתית','אנגלית'],
+      'שני':  ['מתמטיקה','בריקדנס','חנ"ג','מתמטיקה','אומנות','אומנות'],
+      'שלישי':['שפה','אנגלית','גאומטריה','שפה','חנ"ג','תרבות חברה'],
+      'רביעי':['שפה כתיבה','תנ"ך','שפה לשון','מתמטיקה','מדעים',''],
+      'חמישי':['שפה','מתמטיקה','שפה','חנ"ג','תרבות חברה','חינוך/מוסיקה'],
+      'שישי': ['קריאה מונחית','תרבות חברה','חינוך','אנגלית','',''],
+    }},
+    'איתן': { grade:"ב'1", days:{
+      'ראשון':['קריאה / תנועה','שפה','מתמטיקה','מדעים','מתמטיקה','תורה'],
+      'שני':  ['מדע ויצירה','מדע ויצירה','חנ"ג','מתמטיקה','קריאה / מוזיקה','שפה'],
+      'שלישי':['אומנות','אומנות','קפוארה','מתמטיקה','חנ"ג','אנגלית'],
+      'רביעי':['חנ"ג','לגו','קריאה / מדעים','שפה','שפה',''],
+      'חמישי':['אנגלית','מתמטיקה','מתמטיקה','קריאה / שפה','שפה','שפה / ניקיון'],
+      'שישי': ['מסלול בוקר שפה','תורה','קריאה / מולדת','חינוך פיננסי','',''],
+    }},
+  };
+  const SUBJ_EMOJI = {
+    'מתמטיקה':'🔢','שפה':'📖','אנגלית':'🇬🇧','חנ"ג':'⚽','אומנות':'🎨',
+    'מדעים':'🔬','מדע ויצירה':'🔭','תנ"ך':'📜','תורה':'📜','חינוך':'🏫',
+    'מוסיקה':'🎵','קריאה':'📚','גאומטריה':'📐','לגו':'🧱','קפוארה':'🥋',
+    'בריקדנס':'💃','חשבה':'💡','תרבות':'🤝',
+  };
+  function getSubjEmoji(s) {
+    for (const [k,v] of Object.entries(SUBJ_EMOJI)) if (s.includes(k)) return v;
+    return '📝';
+  }
+  const DAY_ORDER = ['ראשון','שני','שלישי','רביעי','חמישי','שישי'];
+  let schedDay = '';
+  function renderSchedule() {
+    const sched = SCHEDULES[currentUser];
+    if (!sched) return;
+    const jsDay = new Date().getDay(); // 0=Sun..5=Fri..6=Sat
+    const todayName = (jsDay >= 0 && jsDay <= 5) ? DAY_ORDER[jsDay] : '';
+    if (!schedDay || !sched.days[schedDay]) schedDay = todayName || DAY_ORDER[0];
+    const wrap = document.getElementById('schedContent');
+    wrap.innerHTML = '';
+    const grade = document.createElement('div');
+    grade.className = 'sched-grade';
+    grade.textContent = 'כיתה ' + sched.grade;
+    wrap.appendChild(grade);
+    const tabsDiv = document.createElement('div');
+    tabsDiv.className = 'sched-day-tabs';
+    DAY_ORDER.forEach(function(day) {
+      if (!sched.days[day]) return;
+      const btn = document.createElement('button');
+      const isToday = day === todayName;
+      const isSel   = day === schedDay;
+      btn.className = 'sched-day-tab' + (isToday ? ' today-mark' : '') + (isSel ? ' active' : '');
+      btn.textContent = day + (isToday ? ' ★' : '');
+      btn.onclick = function() { schedDay = day; renderSchedule(); };
+      tabsDiv.appendChild(btn);
+    });
+    wrap.appendChild(tabsDiv);
+    const cardsDiv = document.createElement('div');
+    cardsDiv.className = 'sched-cards';
+    const subjects = sched.days[schedDay] || [];
+    const filled = subjects.filter(Boolean);
+    if (!filled.length) {
+      cardsDiv.innerHTML = '<div class="sched-empty">🎉 אין שיעורים היום!</div>';
+    } else {
+      subjects.forEach(function(subj, i) {
+        if (!subj) return;
+        const card = document.createElement('div');
+        card.className = 'sched-card';
+        card.style.animationDelay = (i * 0.06) + 's';
+        card.innerHTML = '<div class="sched-num">' + (i+1) + '</div>'
+          + '<div class="sched-emoji">' + getSubjEmoji(subj) + '</div>'
+          + '<div class="sched-subject">' + subj + '</div>';
+        cardsDiv.appendChild(card);
+      });
+    }
+    wrap.appendChild(cardsDiv);
+  }
   window.switchTab = tab => {
     document.getElementById('tabToday').classList.toggle('active', tab === 'today');
     document.getElementById('tabHist').classList.toggle('active', tab === 'history');
-    document.getElementById('todayContent').style.display = tab === 'today'   ? 'block' : 'none';
+    document.getElementById('tabSched').classList.toggle('active', tab === 'schedule');
+    document.getElementById('todayContent').style.display = tab === 'today' ? 'block' : 'none';
     document.getElementById('histContent').classList.toggle('active', tab === 'history');
+    document.getElementById('schedContent').classList.toggle('active', tab === 'schedule');
     positionPill(tab);
     if (tab === 'history') loadHistory('day', document.querySelector('.period-btn'));
+    if (tab === 'schedule') renderSchedule();
   };
 
   /* Initialize pill after fonts load */
