@@ -684,6 +684,94 @@
     }
 
     /* =============================================
+       ATTENDANCE MODULE
+       ============================================= */
+    .attend-wrap { display:none; flex-direction:column; gap:12px; padding-bottom:16px; }
+    .attend-wrap.active { display:flex; animation: fadeUp 0.38s ease; }
+    .attend-day-tabs { display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; }
+    .attend-day-tabs::-webkit-scrollbar { display:none; }
+    .attend-day-tab {
+      flex-shrink:0; padding:7px 13px; border-radius:99px;
+      border:1.5px solid transparent; background:var(--glass);
+      color:var(--tx-3); font-weight:700; font-size:0.82rem;
+      cursor:pointer; transition:.2s; font-family:inherit;
+    }
+    .attend-day-tab.today-mark { border-color:var(--acc); color:var(--acc); }
+    .attend-day-tab.active { background:var(--acc); color:var(--bg); border-color:transparent; }
+    .attend-prog-track { height:8px; background:var(--glass); border-radius:4px; overflow:hidden; margin-top:4px; }
+    .attend-prog-fill { height:100%; background:linear-gradient(90deg,var(--acc),var(--ok)); border-radius:4px; transition:width .6s cubic-bezier(.34,1.56,.64,1); }
+    .attend-prog-label { font-size:0.78rem; color:var(--tx-3); font-weight:700; }
+    .attend-progress-bar-wrap { display:flex; flex-direction:column; gap:4px; }
+    .attend-lessons { display:flex; flex-direction:column; gap:8px; }
+    .attend-lesson-card {
+      display:flex; align-items:center; gap:12px;
+      background:var(--glass); border:1px solid var(--glass-border);
+      border-radius:var(--r-md); padding:12px 14px;
+      transition:.25s; animation: fadeUp 0.32s ease both;
+    }
+    .attend-lesson-card.present  { border-color:rgba(0,230,118,.35); background:rgba(0,230,118,.07); }
+    .attend-lesson-card.absent   { border-color:rgba(255,75,110,.3);  background:rgba(255,75,110,.05); }
+    .attend-lesson-slot { width:24px;height:24px;border-radius:50%;background:var(--acc);color:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:0.75rem;flex-shrink:0; }
+    .attend-lesson-emoji { font-size:1.3rem; flex-shrink:0; }
+    .attend-lesson-name { font-weight:700; font-size:0.9rem; flex:1; }
+    .attend-btn-group { display:flex; gap:6px; flex-shrink:0; }
+    .attend-btn {
+      padding:5px 10px; border-radius:8px; border:none; cursor:pointer;
+      font-weight:800; font-size:0.78rem; font-family:inherit;
+      transition:.2s; background:var(--glass); color:var(--tx-3);
+    }
+    .attend-btn.yes { background:rgba(0,230,118,.18); color:#00e676; }
+    .attend-btn.no  { background:rgba(255,75,110,.18);  color:#ff4b6e; }
+    .attend-btn.yes.active { background:#00e676; color:#000; box-shadow:0 0 10px rgba(0,230,118,.5); }
+    .attend-btn.no.active  { background:#ff4b6e; color:#fff; box-shadow:0 0 10px rgba(255,75,110,.5); }
+    .attend-hist-wrap { display:flex; flex-direction:column; gap:12px; }
+    .attend-hist-day { background:var(--s1); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:12px 14px; display:flex; justify-content:space-between; align-items:center; animation: fadeUp 0.3s ease both; }
+    .attend-hist-date { font-weight:800; font-size:0.9rem; }
+    .attend-hist-score { font-weight:900; font-size:1rem; }
+    .attend-hist-bar { height:4px; border-radius:2px; margin-top:6px; }
+    .attend-view-toggle { display:flex; gap:8px; margin-top:4px; }
+
+    /* =============================================
+       EVENING ROUTINE MODULE
+       ============================================= */
+    .evening-wrap { display:none; flex-direction:column; gap:12px; padding-bottom:16px; }
+    .evening-wrap.active { display:flex; animation: fadeUp 0.38s ease; }
+    .evening-header { display:flex; flex-direction:column; gap:8px; }
+    .evening-streak { font-size:0.88rem; font-weight:800; color:var(--warn); }
+    .evening-prog-track { height:8px; background:var(--glass); border-radius:4px; overflow:hidden; margin-top:4px; }
+    .evening-prog-fill { height:100%; background:linear-gradient(90deg,#a855f7,#ec4899); border-radius:4px; transition:width .6s cubic-bezier(.34,1.56,.64,1); }
+    .evening-prog-label { font-size:0.78rem; color:var(--tx-3); font-weight:700; }
+    .evening-prog-wrap { display:flex; flex-direction:column; gap:4px; }
+    .evening-tasks { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .evening-task-card {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:8px; padding:18px 12px;
+      background:var(--glass); border:1.5px solid var(--glass-border);
+      border-radius:var(--r-lg); cursor:pointer;
+      transition:all .3s cubic-bezier(.34,1.56,.64,1);
+      animation: fadeUp 0.32s ease both; min-height:120px;
+      position:relative; overflow:hidden; text-align:center;
+    }
+    .evening-task-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(168,85,247,.18),rgba(236,72,153,.12)); opacity:0; transition:.3s; }
+    .evening-task-card.done::before { opacity:1; }
+    .evening-task-card.done { border-color:rgba(168,85,247,.5); box-shadow:0 0 20px rgba(168,85,247,.2); }
+    .evening-task-icon { font-size:2.4rem; line-height:1; position:relative; z-index:1; }
+    .evening-task-name { font-weight:700; font-size:0.85rem; color:var(--tx); position:relative; z-index:1; }
+    .evening-task-check { font-size:1.1rem; opacity:0; transform:scale(0); transition:all .4s cubic-bezier(.34,1.56,.64,1); position:relative; z-index:1; }
+    .evening-task-card.done .evening-task-check { opacity:1; transform:scale(1); }
+    .evening-task-card:active { transform:scale(0.95); }
+    .evening-done-msg { text-align:center; padding:36px 24px; animation: fadeUp 0.6s ease; }
+    .evening-done-icon { font-size:4rem; margin-bottom:12px; animation: pop 0.6s cubic-bezier(.34,1.56,.64,1); }
+    .evening-done-title { font-size:1.6rem; font-weight:900; color:var(--acc); margin-bottom:8px; }
+    .evening-done-sub { font-size:0.9rem; color:var(--tx-2); font-weight:600; }
+    .evening-hist-wrap { display:flex; flex-direction:column; gap:12px; }
+    .evening-hist-row { background:var(--s1); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:12px 14px; display:flex; justify-content:space-between; align-items:center; animation: fadeUp 0.3s ease both; }
+    .evening-hist-date { font-weight:800; font-size:0.9rem; }
+    .evening-hist-score { font-weight:900; font-size:1rem; }
+    .evening-hist-dots { display:flex; gap:4px; margin-top:5px; }
+    .evening-hist-dot { width:12px; height:12px; border-radius:3px; }
+
+    /* =============================================
        CELEBRATION MODAL
        ============================================= */
     .cel-overlay {
@@ -879,9 +967,11 @@
   <!-- Tabs -->
   <div class="tabs-wrap" id="tabsWrap">
     <div class="tabs-pill" id="tabsPill"></div>
-    <button class="tab-btn active" id="tabToday" onclick="switchTab('today')">⚡ משימות היום</button>
-    <button class="tab-btn"        id="tabHist"  onclick="switchTab('history')">📊 היסטוריה</button>
-    <button class="tab-btn"        id="tabSched" onclick="switchTab('schedule')">📅 מערכת</button>
+    <button class="tab-btn active" id="tabToday"   onclick="switchTab('today')">⚡ בוקר</button>
+    <button class="tab-btn"        id="tabAttend"  onclick="switchTab('attend')" style="display:none">🏫 נוכחות</button>
+    <button class="tab-btn"        id="tabEvening" onclick="switchTab('evening')">🌙 ערב</button>
+    <button class="tab-btn"        id="tabHist"    onclick="switchTab('history')">📊 היסטוריה</button>
+    <button class="tab-btn"        id="tabSched"   onclick="switchTab('schedule')">📅 מערכת</button>
   </div>
 
   <!-- Today Content -->
@@ -912,6 +1002,64 @@
 
   <!-- Schedule Content -->
   <div class="sched-wrap" id="schedContent"></div>
+
+  <!-- Attendance Content (Alon only) -->
+  <div class="attend-wrap" id="attendContent">
+    <div class="attend-view" id="attendView">
+      <div class="attend-day-tabs" id="attendDayTabs"></div>
+      <div class="attend-progress-bar-wrap">
+        <div class="attend-prog-label" id="attendProgLabel">0/0 שיעורים דווחו</div>
+        <div class="attend-prog-track"><div class="attend-prog-fill" id="attendProgFill"></div></div>
+      </div>
+      <div class="attend-lessons" id="attendLessons"></div>
+    </div>
+    <div class="attend-hist-wrap" id="attendHistWrap" style="display:none">
+      <div class="period-bar">
+        <button class="period-btn active" onclick="loadAttendHistory('week',this)">שבוע</button>
+        <button class="period-btn"        onclick="loadAttendHistory('month',this)">חודש</button>
+        <button class="period-btn"        onclick="loadAttendHistory('term',this)">סמסטר</button>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi-box"><div class="kpi-num" id="attendKpiPct">0%</div><div class="kpi-desc">נוכחות ממוצעת</div></div>
+        <div class="kpi-box"><div class="kpi-num" id="attendKpiTot">0</div><div class="kpi-desc">שיעורים נכנסתי</div></div>
+      </div>
+      <div class="tasks-list" id="attendHistList"></div>
+    </div>
+    <div class="attend-view-toggle">
+      <button class="period-btn active" id="attendBtnToday" onclick="showAttendView('today')">📅 היום</button>
+      <button class="period-btn"        id="attendBtnHist"  onclick="showAttendView('hist')">📈 היסטוריה</button>
+    </div>
+  </div>
+
+  <!-- Evening Routine Content -->
+  <div class="evening-wrap" id="eveningContent">
+    <div class="evening-header">
+      <div class="evening-streak" id="eveningStreak">🔥 0 ימים ברצף</div>
+      <div class="evening-prog-wrap">
+        <div class="evening-prog-label" id="eveningProgLabel">0/4 משימות</div>
+        <div class="evening-prog-track"><div class="evening-prog-fill" id="eveningProgFill"></div></div>
+      </div>
+    </div>
+    <div class="evening-view" id="eveningView">
+      <div class="evening-tasks" id="eveningTasks"></div>
+      <div class="evening-done-msg" id="eveningDoneMsg" style="display:none">
+        <div class="evening-done-icon">🌟</div>
+        <div class="evening-done-title">כל הכבוד!</div>
+        <div class="evening-done-sub">סיימת את שגרת הערב — לילה טוב!</div>
+      </div>
+    </div>
+    <div class="attend-view-toggle">
+      <button class="period-btn active" id="eveningBtnToday" onclick="showEveningView('today')">🌙 הערב</button>
+      <button class="period-btn"        id="eveningBtnHist"  onclick="showEveningView('hist')">📈 היסטוריה</button>
+    </div>
+    <div class="evening-hist-wrap" id="eveningHistWrap" style="display:none">
+      <div class="period-bar">
+        <button class="period-btn active" onclick="loadEveningHistory('week',this)">שבוע</button>
+        <button class="period-btn"        onclick="loadEveningHistory('month',this)">חודש</button>
+      </div>
+      <div class="tasks-list" id="eveningHistList"></div>
+    </div>
+  </div>
 
 </div>
 
@@ -1057,7 +1205,11 @@
     document.getElementById('profileScreen').style.display = 'none';
     document.getElementById('mainApp').classList.add('active');
 
-    // reset pill position for "today"
+    // show attendance tab only for Alon
+    document.getElementById('tabAttend').style.display = userName === 'אלון' ? '' : 'none';
+
+    // reset to today tab
+    switchTab('today');
     positionPill('today');
 
     google.script.run
@@ -1266,7 +1418,8 @@
   function positionPill(tab) {
     const wrap = document.getElementById('tabsWrap');
     const pill = document.getElementById('tabsPill');
-    const btn  = document.getElementById(tab === 'today' ? 'tabToday' : tab === 'history' ? 'tabHist' : 'tabSched');
+    const idMap = {today:'tabToday',attend:'tabAttend',evening:'tabEvening',history:'tabHist',schedule:'tabSched'};
+    const btn  = document.getElementById(idMap[tab] || 'tabToday');
     if (!btn || !wrap) return;
     const wr = wrap.getBoundingClientRect();
     const br = btn.getBoundingClientRect();
@@ -1642,15 +1795,20 @@
     wrap.appendChild(cardsDiv);
   }
   window.switchTab = tab => {
-    document.getElementById('tabToday').classList.toggle('active', tab === 'today');
-    document.getElementById('tabHist').classList.toggle('active', tab === 'history');
-    document.getElementById('tabSched').classList.toggle('active', tab === 'schedule');
-    document.getElementById('todayContent').style.display = tab === 'today' ? 'block' : 'none';
-    document.getElementById('histContent').classList.toggle('active', tab === 'history');
-    document.getElementById('schedContent').classList.toggle('active', tab === 'schedule');
+    ['today','attend','evening','history','schedule'].forEach(t => {
+      const btn = document.getElementById('tab' + {today:'Today',attend:'Attend',evening:'Evening',history:'Hist',schedule:'Sched'}[t]);
+      if (btn) btn.classList.toggle('active', tab === t);
+    });
+    document.getElementById('todayContent').style.display   = tab === 'today'   ? 'block' : 'none';
+    document.getElementById('attendContent').classList.toggle('active', tab === 'attend');
+    document.getElementById('eveningContent').classList.toggle('active', tab === 'evening');
+    document.getElementById('histContent').classList.toggle('active',   tab === 'history');
+    document.getElementById('schedContent').classList.toggle('active',  tab === 'schedule');
     positionPill(tab);
-    if (tab === 'history') loadHistory('day', document.querySelector('.period-btn'));
+    if (tab === 'history')  loadHistory('day', document.querySelector('.period-btn'));
     if (tab === 'schedule') renderSchedule();
+    if (tab === 'attend')   renderAttendance();
+    if (tab === 'evening')  renderEvening();
   };
 
   /* Initialize pill after fonts load */
@@ -1739,6 +1897,228 @@
       if (Date.now() < end) requestAnimationFrame(burst);
     })();
   }
+
+  /* ── ATTENDANCE MODULE ─────────────────────────── */
+  let attendDay = '';
+  let attendData = {}; // slot → {present, title}
+  let attendViewMode = 'today';
+
+  window.showAttendView = mode => {
+    attendViewMode = mode;
+    document.getElementById('attendView').style.display    = mode === 'today' ? '' : 'none';
+    document.getElementById('attendHistWrap').style.display = mode === 'hist'  ? '' : 'none';
+    document.getElementById('attendBtnToday').classList.toggle('active', mode === 'today');
+    document.getElementById('attendBtnHist').classList.toggle('active',  mode === 'hist');
+    if (mode === 'hist') loadAttendHistory('week', document.querySelector('#attendHistWrap .period-btn'));
+  };
+
+  function renderAttendance() {
+    if (attendViewMode === 'hist') { showAttendView('hist'); return; }
+    const sched = SCHEDULES[currentUser];
+    if (!sched) return;
+    const jsDay = new Date().getDay();
+    if (!attendDay || !sched.days[attendDay]) attendDay = DAY_ORDER[jsDay] || DAY_ORDER[0];
+
+    // Build day tabs
+    const tabsEl = document.getElementById('attendDayTabs');
+    tabsEl.innerHTML = '';
+    const todayName = DAY_ORDER[jsDay] || '';
+    DAY_ORDER.forEach(day => {
+      if (!sched.days[day] || !sched.days[day].filter(Boolean).length) return;
+      const btn = document.createElement('button');
+      btn.className = 'attend-day-tab' + (day === todayName ? ' today-mark' : '') + (day === attendDay ? ' active' : '');
+      btn.textContent = day + (day === todayName ? ' ★' : '');
+      btn.onclick = () => { attendDay = day; renderAttendanceLessons(); };
+      tabsEl.appendChild(btn);
+    });
+
+    // Fetch saved attendance for today (or cached)
+    const dateStr = getTodayDateStr();
+    google.script.run
+      .withSuccessHandler(res => { attendData = res.attendance || {}; renderAttendanceLessons(); })
+      .withFailureHandler(() => renderAttendanceLessons())
+      .getAttendanceData(currentUser, dateStr);
+  }
+
+  function getTodayDateStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  function renderAttendanceLessons() {
+    const sched = SCHEDULES[currentUser];
+    const subjects = (sched && sched.days[attendDay]) ? sched.days[attendDay].filter(Boolean) : [];
+    const listEl = document.getElementById('attendLessons');
+    listEl.innerHTML = '';
+    let reported = 0;
+
+    subjects.forEach((subj, i) => {
+      const slot = i + 1;
+      const rec  = attendData[slot];
+      const present = rec ? rec.present : null;
+      if (present !== null) reported++;
+
+      const card = document.createElement('div');
+      card.className = 'attend-lesson-card' + (present === true ? ' present' : present === false ? ' absent' : '');
+      card.style.animationDelay = (i * 0.05) + 's';
+      card.innerHTML = `
+        <div class="attend-lesson-slot">${slot}</div>
+        <div class="attend-lesson-emoji">${getSubjEmoji(subj)}</div>
+        <div class="attend-lesson-name">${esc(subj)}</div>
+        <div class="attend-btn-group">
+          <button class="attend-btn yes${present===true?' active':''}" onclick="setAttend(${slot},'${esc(subj)}',true)" title="נכנסתי">✓</button>
+          <button class="attend-btn no${present===false?' active':''}"  onclick="setAttend(${slot},'${esc(subj)}',false)" title="לא נכנסתי">✗</button>
+        </div>`;
+      listEl.appendChild(card);
+    });
+
+    const total = subjects.length;
+    document.getElementById('attendProgLabel').textContent = reported + '/' + total + ' שיעורים דווחו';
+    document.getElementById('attendProgFill').style.width = (total ? Math.round(reported/total*100) : 0) + '%';
+  }
+
+  window.setAttend = (slot, title, present) => {
+    attendData[slot] = { present, title };
+    renderAttendanceLessons();
+    google.script.run
+      .withFailureHandler(() => toast('לא ניתן לשמור נוכחות'))
+      .setAttendance(currentUser, slot, title, present, getTodayDateStr());
+  };
+
+  window.loadAttendHistory = (period, btn) => {
+    document.querySelectorAll('#attendHistWrap .period-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    const list = document.getElementById('attendHistList');
+    list.innerHTML = '<div class="skel skel-card"></div><div class="skel skel-card"></div>';
+    google.script.run
+      .withSuccessHandler(stats => {
+        document.getElementById('attendKpiPct').textContent = stats.avgPercent + '%';
+        document.getElementById('attendKpiTot').textContent = stats.totalPresent;
+        list.innerHTML = '';
+        if (!stats.days.length) {
+          list.innerHTML = '<p style="color:var(--tx-3);text-align:center;padding:28px;font-weight:700;">אין היסטוריה עדיין.</p>';
+          return;
+        }
+        stats.days.forEach((day, i) => {
+          const [dy,dm,dd] = day.date.split('-');
+          const total = day.present + day.absent;
+          const pct   = total ? Math.round(day.present/total*100) : 0;
+          const color = pct >= 80 ? 'var(--ok)' : pct >= 50 ? 'var(--warn)' : 'var(--err)';
+          const el = document.createElement('div');
+          el.className = 'attend-hist-day'; el.style.animationDelay = i * 0.05 + 's';
+          el.innerHTML = `<div><div class="attend-hist-date">📅 ${dd}/${dm}/${dy}</div>
+            <div style="height:4px;width:${pct}%;background:${color};border-radius:2px;margin-top:6px;transition:width .6s"></div></div>
+            <div class="attend-hist-score" style="color:${color}">${day.present}/${total} (${pct}%)</div>`;
+          list.appendChild(el);
+        });
+      })
+      .withFailureHandler(() => { document.getElementById('attendHistList').innerHTML = '<p style="color:var(--err);text-align:center;padding:28px;">שגיאה בטעינה</p>'; })
+      .getAttendanceHistory(currentUser, period);
+  };
+
+  /* ── EVENING ROUTINE MODULE ─────────────────────── */
+  let eveningData = {};
+  let eveningTasks = [];
+  let eveningStreak = 0;
+  let eveningViewMode = 'today';
+
+  window.showEveningView = mode => {
+    eveningViewMode = mode;
+    document.getElementById('eveningView').style.display     = mode === 'today' ? '' : 'none';
+    document.getElementById('eveningHistWrap').style.display  = mode === 'hist'  ? '' : 'none';
+    document.getElementById('eveningBtnToday').classList.toggle('active', mode === 'today');
+    document.getElementById('eveningBtnHist').classList.toggle('active',  mode === 'hist');
+    if (mode === 'hist') loadEveningHistory('week', document.querySelector('#eveningHistWrap .period-btn'));
+  };
+
+  function renderEvening() {
+    if (eveningViewMode === 'hist') { showEveningView('hist'); return; }
+    const wrap = document.getElementById('eveningTasks');
+    wrap.innerHTML = '<div class="skel skel-card"></div><div class="skel skel-card"></div>';
+    google.script.run
+      .withSuccessHandler(res => {
+        eveningTasks  = res.tasks  || [];
+        eveningData   = res.doneMap || {};
+        eveningStreak = res.streak  || 0;
+        renderEveningTasks();
+      })
+      .withFailureHandler(() => toast('שגיאה בטעינת ערב'))
+      .getEveningData(currentUser);
+  }
+
+  function renderEveningTasks() {
+    const wrap = document.getElementById('eveningTasks');
+    wrap.innerHTML = '';
+    document.getElementById('eveningStreak').textContent = '🔥 ' + eveningStreak + ' ימים ברצף';
+
+    let done = 0;
+    eveningTasks.forEach((task, i) => {
+      const isDone = !!eveningData[task.id];
+      if (isDone) done++;
+      const card = document.createElement('div');
+      card.className = 'evening-task-card' + (isDone ? ' done' : '');
+      card.style.animationDelay = i * 0.08 + 's';
+      card.onclick = () => toggleEveningTask(task.id, !isDone);
+      card.innerHTML = `
+        <div class="evening-task-icon">${task.icon}</div>
+        <div class="evening-task-name">${esc(task.title)}</div>
+        <div class="evening-task-check">✓</div>`;
+      wrap.appendChild(card);
+    });
+
+    const total = eveningTasks.length;
+    document.getElementById('eveningProgLabel').textContent = done + '/' + total + ' משימות';
+    document.getElementById('eveningProgFill').style.width  = (total ? Math.round(done/total*100) : 0) + '%';
+
+    const doneMsg = document.getElementById('eveningDoneMsg');
+    if (done === total && total > 0) {
+      doneMsg.style.display = '';
+      wrap.style.display = 'none';
+    } else {
+      doneMsg.style.display = 'none';
+      wrap.style.display = '';
+    }
+  }
+
+  function toggleEveningTask(taskId, done) {
+    sound(done ? 'check' : 'uncheck');
+    if (done && navigator.vibrate) navigator.vibrate([15, 8, 25]);
+    eveningData[taskId] = done;
+    renderEveningTasks();
+    google.script.run
+      .withFailureHandler(() => { toast('שגיאה בשמירה'); eveningData[taskId] = !done; renderEveningTasks(); })
+      .toggleEveningTask(currentUser, taskId, done);
+  }
+
+  window.loadEveningHistory = (period, btn) => {
+    document.querySelectorAll('#eveningHistWrap .period-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    const list = document.getElementById('eveningHistList');
+    list.innerHTML = '<div class="skel skel-card"></div><div class="skel skel-card"></div>';
+    google.script.run
+      .withSuccessHandler(stats => {
+        list.innerHTML = '';
+        if (!stats.days.length) {
+          list.innerHTML = '<p style="color:var(--tx-3);text-align:center;padding:28px;font-weight:700;">אין היסטוריה עדיין.</p>';
+          return;
+        }
+        stats.days.forEach((day, i) => {
+          const [dy,dm,dd] = day.date.split('-');
+          const full  = day.done >= stats.totalTasks;
+          const color = full ? 'var(--ok)' : day.done > 0 ? 'var(--warn)' : 'var(--err)';
+          const el = document.createElement('div');
+          el.className = 'evening-hist-row'; el.style.animationDelay = i * 0.05 + 's';
+          const dots = Array.from({length: stats.totalTasks}, (_, j) =>
+            `<div class="evening-hist-dot" style="background:${j < day.done ? color : 'var(--glass)'}"></div>`).join('');
+          el.innerHTML = `<div><div class="evening-hist-date">🌙 ${dd}/${dm}/${dy} ${full?'🏆':''}</div>
+            <div class="evening-hist-dots">${dots}</div></div>
+            <div class="evening-hist-score" style="color:${color}">${day.done}/${stats.totalTasks}</div>`;
+          list.appendChild(el);
+        });
+      })
+      .withFailureHandler(() => { document.getElementById('eveningHistList').innerHTML = '<p style="color:var(--err);text-align:center;padding:28px;">שגיאה בטעינה</p>'; })
+      .getEveningHistory(currentUser, period);
+  };
 
   /* ── TOAST ─────────────────────────────────────── */
   let toastTmr;

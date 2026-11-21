@@ -236,3 +236,179 @@ function getHistoryStats(userName, period) {
     totalCompleted
   };
 }
+
+// ============================================================
+// ATTENDANCE MODULE (Alon – school lessons)
+// ============================================================
+const ATTENDANCE_SHEET = 'Attendance_V1';
+
+function initAttendanceSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (ss.getSheetByName(ATTENDANCE_SHEET)) return;
+  const sh = ss.insertSheet(ATTENDANCE_SHEET);
+  sh.appendRow(['Date','User','Slot','LessonTitle','Present','UpdatedAt']);
+  sh.getRange('A1:F1').setFontWeight('bold').setBackground('#111a2d').setFontColor('#38bdf8').setHorizontalAlignment('center');
+  sh.setFrozenRows(1); sh.setColumnWidths(1,6,160);
+}
+
+function getAttendSheet_() {
+  initAttendanceSheet_();
+  return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ATTENDANCE_SHEET);
+}
+
+function getAttendanceData(userName, dateStr) {
+  validateUser_(userName);
+  if (!dateStr) dateStr = getTodayStr();
+  const sheet = getAttendSheet_();
+  const data  = sheet.getDataRange().getValues();
+  const result = {};
+  for (let i = 1; i < data.length; i++) {
+    const row  = data[i];
+    const date = formatRowDate(row[0]);
+    const user = String(row[1]).trim();
+    const slot = Number(row[2]);
+    if (date === dateStr && user === userName)
+      result[slot] = { present: row[4] === true || row[4] === 'TRUE', title: String(row[3]) };
+  }
+  return { date: dateStr, attendance: result };
+}
+
+function setAttendance(userName, slot, lessonTitle, present, dateStr) {
+  validateUser_(userName);
+  if (!dateStr) dateStr = getTodayStr();
+  slot = Number(slot);
+  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    const sheet = getAttendSheet_();
+    const data  = sheet.getDataRange().getValues();
+    const now   = Date.now();
+    let targetRow = -1;
+    for (let i = 1; i < data.length; i++) {
+      if (formatRowDate(data[i][0]) === dateStr && String(data[i][1]).trim() === userName && Number(data[i][2]) === slot) {
+        targetRow = i + 1; break;
+      }
+    }
+    if (targetRow > 0) sheet.getRange(targetRow,5,1,2).setValues([[present, now]]);
+    else sheet.appendRow([dateStr, userName, slot, lessonTitle, present, now]);
+    return { success: true };
+  } finally { lock.releaseLock(); }
+}
+
+function getAttendanceHistory(userName, period) {
+  validateUser_(userName);
+  if (!['week','month','term'].includes(period)) period = 'week';
+  const sheet = getAttendSheet_();
+  const data  = sheet.getDataRange().getValues();
+  const dailyMap = {};
+  for (let i = 1; i < data.length; i++) {
+    const row  = data[i];
+    const date = formatRowDate(row[0]);
+    const user = String(row[1]).trim();
+    const pres = row[4] === true || row[4] === 'TRUE';
+    if (!date || user !== userName) continue;
+    if (!dailyMap[date]) dailyMap[date] = { date, present:0, absent:0 };
+    if (pres) dailyMap[date].present++; else dailyMap[date].absent++;
+  }
+  const todayParts = getTodayStr().split('-').map(Number);
+  const today = new Date(todayParts[0], todayParts[1]-1, todayParts[2]);
+  const maxDays = { week:7, month:30, term:90 }[period];
+  const filtered = Object.values(dailyMap)
+    .filter(item => { const [y,m,d] = item.date.split('-').map(Number); const diff = Math.round((today - new Date(y,m-1,d))/86400000); return diff >= 0 && diff <= maxDays; })
+    .sort((a,b) => b.date.localeCompare(a.date));
+  const totalPresent  = filtered.reduce((s,i) => s + i.present, 0);
+  const totalLessons  = filtered.reduce((s,i) => s + i.present + i.absent, 0);
+  return { days: filtered, totalPresent, totalLessons, avgPercent: totalLessons ? Math.round(totalPresent/totalLessons*100) : 0 };
+}
+
+// ============================================================
+// EVENING ROUTINE MODULE (Alon + Eitan)
+// ============================================================
+const EVENING_SHEET = 'Evening_V1';
+const EVENING_TASKS = [
+  { id:'ev1', title:'שיעורי בית',       icon:'📚' },
+  { id:'ev2', title:'מקלחת',            icon:'🚿' },
+  { id:'ev3', title:'ארוחת ערב',        icon:'🍽️' },
+  { id:'ev4', title:'הכנת בגדים למחר',  icon:'👕' },
+];
+
+function initEveningSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (ss.getSheetByName(EVENING_SHEET)) return;
+  const sh = ss.insertSheet(EVENING_SHEET);
+  sh.appendRow(['Date','User','TaskID','TaskTitle','Done','DoneAt']);
+  sh.getRange('A1:F1').setFontWeight('bold').setBackground('#111a2d').setFontColor('#38bdf8').setHorizontalAlignment('center');
+  sh.setFrozenRows(1); sh.setColumnWidths(1,6,160);
+}
+
+function getEveningSheet_() {
+  initEveningSheet_();
+  return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(EVENING_SHEET);
+}
+
+function getEveningData(userName) {
+  validateUser_(userName);
+  const sheet = getEveningSheet_();
+  const data  = sheet.getDataRange().getValues();
+  const today = getTodayStr();
+  const doneMap = {};
+  const allDaysDone = {};
+  for (let i = 1; i < data.length; i++) {
+    const row  = data[i];
+    const date = formatRowDate(row[0]);
+    const user = String(row[1]).trim();
+    const tid  = String(row[2]).trim();
+    const done = row[4] === true || row[4] === 'TRUE';
+    if (!date || user !== userName) continue;
+    if (date === today) doneMap[tid] = done;
+    if (done && EVENING_TASKS.find(t => t.id === tid)) { allDaysDone[date] = (allDaysDone[date]||0)+1; }
+  }
+  const completedDates = new Set(Object.keys(allDaysDone).filter(d => allDaysDone[d] >= EVENING_TASKS.length));
+  return { tasks: EVENING_TASKS, doneMap, today, streak: calculateStreak_(completedDates, today) };
+}
+
+function toggleEveningTask(userName, taskId, done) {
+  validateUser_(userName);
+  const task = EVENING_TASKS.find(t => t.id === taskId);
+  if (!task) throw new Error('משימת ערב לא חוקית');
+  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    const sheet = getEveningSheet_();
+    const data  = sheet.getDataRange().getValues();
+    const today = getTodayStr();
+    const now   = Date.now();
+    let targetRow = -1;
+    for (let i = 1; i < data.length; i++) {
+      if (formatRowDate(data[i][0]) === today && String(data[i][1]).trim() === userName && String(data[i][2]).trim() === taskId) {
+        targetRow = i + 1; break;
+      }
+    }
+    if (targetRow > 0) sheet.getRange(targetRow,5,1,2).setValues([[done, done ? now : '']]);
+    else if (done) sheet.appendRow([today, userName, taskId, task.title, true, now]);
+    return { success: true };
+  } finally { lock.releaseLock(); }
+}
+
+function getEveningHistory(userName, period) {
+  validateUser_(userName);
+  if (!['week','month'].includes(period)) period = 'week';
+  const sheet = getEveningSheet_();
+  const data  = sheet.getDataRange().getValues();
+  const dailyMap = {};
+  for (let i = 1; i < data.length; i++) {
+    const row  = data[i];
+    const date = formatRowDate(row[0]);
+    const user = String(row[1]).trim();
+    const tid  = String(row[2]).trim();
+    const done = row[4] === true || row[4] === 'TRUE';
+    if (!date || user !== userName) continue;
+    if (!dailyMap[date]) dailyMap[date] = { date, done:0 };
+    if (done && EVENING_TASKS.find(t => t.id === tid)) dailyMap[date].done++;
+  }
+  const todayParts = getTodayStr().split('-').map(Number);
+  const today = new Date(todayParts[0], todayParts[1]-1, todayParts[2]);
+  const maxDays = { week:7, month:30 }[period];
+  const filtered = Object.values(dailyMap)
+    .filter(item => { const [y,m,d] = item.date.split('-').map(Number); const diff = Math.round((today - new Date(y,m-1,d))/86400000); return diff >= 0 && diff <= maxDays; })
+    .sort((a,b) => b.date.localeCompare(a.date));
+  return { days: filtered, totalTasks: EVENING_TASKS.length, totalFullDays: filtered.filter(d => d.done >= EVENING_TASKS.length).length };
+}
