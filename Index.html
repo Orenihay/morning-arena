@@ -632,6 +632,33 @@
     .sched-subject { font-weight:700; font-size:0.95rem; color:var(--tx); flex:1; }
     .sched-grade { font-size:0.78rem; color:var(--tx-3); margin-bottom:-4px; letter-spacing:.04em; }
     .sched-empty { text-align:center; color:var(--tx-3); padding:32px 16px; font-size:0.92rem; }
+    /* ── SHABBAT ANIMATION ───────────────────────── */
+    .shab-screen {
+      border-radius:var(--r-lg); overflow:hidden; min-height:360px;
+      position:relative; display:flex; flex-direction:column;
+      align-items:center; justify-content:flex-end; padding-bottom:24px;
+      animation:sceneIn 0.9s ease both;
+    }
+    @keyframes sceneIn { from{opacity:0;transform:scale(1.04)} to{opacity:1;transform:scale(1)} }
+    .shab-el { position:absolute; display:inline-block; }
+    .shab-title-wrap { z-index:5; text-align:center; padding:0 20px; }
+    .shab-headline { font-size:1.4rem; font-weight:900; color:#fff; text-shadow:0 2px 12px rgba(0,0,0,.55); margin-bottom:5px; }
+    .shab-sub-text  { font-size:0.85rem; color:rgba(255,255,255,.88); font-weight:600; }
+    @keyframes sunSpin   { to{transform:rotate(360deg)} }
+    @keyframes moonGlow  { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.35) drop-shadow(0 0 10px gold)} }
+    @keyframes rideRight { 0%{left:5%;transform:scaleX(1)} 44%{left:72%;transform:scaleX(1)} 50%{left:72%;transform:scaleX(-1)} 94%{left:5%;transform:scaleX(-1)} 100%{left:5%;transform:scaleX(1)} }
+    @keyframes rideBob   { 0%,100%{margin-top:0} 50%{margin-top:-5px} }
+    @keyframes sail      { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-8px) rotate(2deg)} }
+    @keyframes gull      { 0%,100%{transform:translate(0,0)} 50%{transform:translate(40px,-12px)} }
+    @keyframes flutter   { 0%{transform:translate(0,0) rotate(0)} 25%{transform:translate(28px,-22px) rotate(8deg)} 50%{transform:translate(55px,0) rotate(0)} 75%{transform:translate(28px,18px) rotate(-8deg)} 100%{transform:translate(0,0) rotate(0)} }
+    @keyframes sway      { 0%,100%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} }
+    @keyframes breathe   { 0%,100%{transform:translateX(-50%) scale(1)} 50%{transform:translateX(-50%) scale(1.06)} }
+    @keyframes pop       { 0%,100%{transform:scale(1) rotate(0)} 50%{transform:scale(1.3) rotate(12deg)} }
+    @keyframes twinkle   { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.15;transform:scale(.4)} }
+    @keyframes tvFlicker { 0%,100%{filter:drop-shadow(0 0 12px #4fc3f7)} 50%{filter:drop-shadow(0 0 24px #4fc3f7) brightness(1.2)} }
+    @keyframes heartbeat { 0%,100%{transform:scale(1)} 25%{transform:scale(1.35)} 40%{transform:scale(1)} 55%{transform:scale(1.2)} }
+    @keyframes floatUp   { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-18px) rotate(8deg)} }
+    @keyframes waveSlide { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
 
     .kpi-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     .kpi-box {
@@ -1247,6 +1274,71 @@
     pill.style.width = br.width + 'px';
   }
 
+
+  /* ── SHABBAT SCENES ──────────────────────────────── */
+  let shabTimer = null;
+  let shabIdx   = 0;
+
+  function buildBikeScene() {
+    return '<div style="position:absolute;inset:0;background:linear-gradient(180deg,#87CEEB 0%,#b0d8f5 48%,#1a6b8a 48%,#2980b9 70%,#c8a97e 70%,#b8956a 100%);"></div>'
+      + '<div class="shab-el shab-sun" style="font-size:2.8rem;top:7%;right:10%;animation:sunSpin 22s linear infinite;">☀️</div>'
+      + '<div class="shab-el" style="font-size:1.8rem;top:50%;left:12%;animation:sail 3.2s ease-in-out infinite;">⛵</div>'
+      + '<div class="shab-el" style="font-size:1rem;top:18%;left:20%;animation:gull 4s ease-in-out infinite;">🐦</div>'
+      + '<div class="shab-el" style="font-size:1rem;top:13%;left:40%;animation:gull 5s ease-in-out infinite;animation-delay:1.5s;">🐦</div>'
+      + '<div class="shab-el" style="font-size:1rem;top:22%;left:60%;animation:gull 3.5s ease-in-out infinite;animation-delay:3s;">🐦</div>'
+      + '<div class="shab-el" style="font-size:3.4rem;bottom:28%;animation:rideRight 5s linear infinite,rideBob 0.38s ease-in-out infinite;">🚴</div>'
+      + '<div style="position:absolute;bottom:28%;width:200%;font-size:1.6rem;letter-spacing:-6px;opacity:.5;animation:waveSlide 3s linear infinite;white-space:nowrap;">〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️〰️</div>';
+  }
+
+  function buildPicnicScene() {
+    return '<div style="position:absolute;inset:0;background:linear-gradient(180deg,#87CEEB 0%,#aee8f8 44%,#5cb85c 44%,#3d8b37 100%);"></div>'
+      + '<div class="shab-el" style="font-size:2.6rem;top:7%;right:11%;animation:sunSpin 22s linear infinite;">☀️</div>'
+      + '<div class="shab-el" style="font-size:3.8rem;bottom:22%;left:5%;animation:sway 3.5s ease-in-out infinite;transform-origin:bottom;">🌳</div>'
+      + '<div class="shab-el" style="font-size:3.8rem;bottom:22%;right:5%;animation:sway 4.2s ease-in-out infinite;animation-delay:0.8s;transform-origin:bottom;">🌳</div>'
+      + '<div class="shab-el" style="font-size:1.8rem;top:30%;left:22%;animation:flutter 5.5s ease-in-out infinite;">🦋</div>'
+      + '<div class="shab-el" style="font-size:1.8rem;top:35%;right:20%;animation:flutter 7s ease-in-out infinite;animation-delay:2s;">🦋</div>'
+      + '<div class="shab-el" style="font-size:4.2rem;bottom:22%;left:50%;animation:breathe 2.5s ease-in-out infinite;transform:translateX(-50%);">👨‍👩‍👧‍👦</div>'
+      + '<div class="shab-el" style="font-size:1.6rem;bottom:22%;left:20%;animation:pop 2.5s ease-in-out infinite;animation-delay:0.3s;">🌸</div>'
+      + '<div class="shab-el" style="font-size:1.6rem;bottom:22%;left:70%;animation:pop 3s ease-in-out infinite;animation-delay:1s;">🌼</div>'
+      + '<div class="shab-el" style="font-size:1.6rem;bottom:22%;left:35%;animation:pop 2.8s ease-in-out infinite;animation-delay:0.7s;">🌺</div>'
+      + '<div class="shab-el" style="font-size:2.2rem;bottom:22%;left:55%;animation:floatUp 3s ease-in-out infinite;animation-delay:0.5s;">🧺</div>';
+  }
+
+  function buildMovieScene() {
+    return '<div style="position:absolute;inset:0;background:linear-gradient(180deg,#06091a 0%,#0d1b3e 60%,#162040 100%);"></div>'
+      + '<div class="shab-el" style="font-size:2.2rem;top:7%;right:14%;animation:moonGlow 3s ease-in-out infinite;">🌙</div>'
+      + '<div class="shab-el" style="font-size:1.2rem;top:12%;left:18%;animation:twinkle 2s ease-in-out infinite;">⭐</div>'
+      + '<div class="shab-el" style="font-size:1.4rem;top:9%;left:38%;animation:twinkle 2.5s ease-in-out infinite;animation-delay:0.8s;">✨</div>'
+      + '<div class="shab-el" style="font-size:1.1rem;top:16%;left:60%;animation:twinkle 1.8s ease-in-out infinite;animation-delay:1.4s;">⭐</div>'
+      + '<div class="shab-el" style="font-size:1.3rem;top:7%;left:75%;animation:twinkle 3s ease-in-out infinite;animation-delay:0.4s;">✨</div>'
+      + '<div class="shab-el" style="font-size:5rem;top:28%;left:50%;transform:translateX(-50%);animation:tvFlicker 2.5s ease-in-out infinite;">📺</div>'
+      + '<div class="shab-el" style="font-size:3.8rem;bottom:24%;left:50%;animation:breathe 2.5s ease-in-out infinite;transform:translateX(-50%);">👨‍👩‍👧‍👦</div>'
+      + '<div class="shab-el" style="font-size:2rem;bottom:24%;left:15%;animation:floatUp 3s ease-in-out infinite;">🍿</div>'
+      + '<div class="shab-el" style="font-size:2rem;bottom:24%;right:15%;animation:heartbeat 1.5s ease-in-out infinite;">💜</div>'
+      + '<div class="shab-el" style="font-size:1.4rem;bottom:34%;left:20%;animation:floatUp 4s ease-in-out infinite;animation-delay:1s;">❤️</div>';
+  }
+
+  function renderShabbat() {
+    if (shabTimer) clearInterval(shabTimer);
+    shabIdx = 0;
+    _showShabScene();
+    shabTimer = setInterval(_showShabScene, 6000);
+  }
+
+  function _showShabScene() {
+    const builders = [buildBikeScene, buildPicnicScene, buildMovieScene];
+    const titles   = ['🚴 יום חופש — לרכוב על אופניים!', '🌿 יום חופש — פיקניק עם המשפחה!', '🎬 יום חופש — סרט עם כולם!'];
+    const subs     = ['מסלול אופניים בנמל ליד הים', 'אוויר טרי, פרחים ופרפרים', 'חיבוק חם ופופקורן 🍿'];
+    const i   = shabIdx % 3;
+    shabIdx++;
+    const wrap = document.getElementById('schedContent');
+    wrap.innerHTML =
+      '<div class="sched-grade">יום שבת — חופש! 🎉</div>'
+      + '<div class="shab-screen">'
+      + builders[i]()
+      + '<div class="shab-title-wrap"><div class="shab-headline">' + titles[i] + '</div><div class="shab-sub-text">' + subs[i] + '</div></div>'
+      + '</div>';
+  }
   /* ── SCHEDULE DATA ─────────────────────────────── */
   const SCHEDULES = {
     'אלון': { grade:"ד'1", days:{
@@ -1283,6 +1375,7 @@
     if (!sched) return;
     const jsDay = new Date().getDay(); // 0=Sun..5=Fri..6=Sat
     const todayName = (jsDay >= 0 && jsDay <= 5) ? DAY_ORDER[jsDay] : '';
+    if (jsDay === 6) { renderShabbat(); return; }
     if (!schedDay || !sched.days[schedDay]) schedDay = todayName || DAY_ORDER[0];
     const wrap = document.getElementById('schedContent');
     wrap.innerHTML = '';
@@ -1292,6 +1385,13 @@
     wrap.appendChild(grade);
     const tabsDiv = document.createElement('div');
     tabsDiv.className = 'sched-day-tabs';
+    if (todayName === '' && jsDay === 6) {
+      const btn = document.createElement('button');
+      btn.className = 'sched-day-tab today-mark active';
+      btn.textContent = 'שבת ★';
+      btn.onclick = function() { renderShabbat(); };
+      tabsDiv.appendChild(btn);
+    }
     DAY_ORDER.forEach(function(day) {
       if (!sched.days[day]) return;
       const btn = document.createElement('button');
