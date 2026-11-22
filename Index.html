@@ -391,11 +391,14 @@
     }
     .xp-fill {
       height: 100%; width: 0%;
-      background: linear-gradient(90deg, var(--acc), var(--acc2));
+      background: linear-gradient(90deg, var(--acc), var(--acc2), var(--acc));
+      background-size: 200% 100%;
       border-radius: 99px;
       transition: width 0.9s cubic-bezier(0.34,1.2,0.64,1);
       box-shadow: 0 0 10px var(--acc-glow);
+      animation: xpShimmer 2.4s ease infinite;
     }
+    @keyframes xpShimmer { 0%{background-position:0 0} 100%{background-position:200% 0} }
     .xp-pts { font-size: 0.78rem; font-weight: 900; color: var(--acc); white-space: nowrap; flex-shrink: 0; }
 
     /* =============================================
@@ -673,7 +676,9 @@
       border-radius:var(--r-lg); padding:16px;
       display:flex; flex-direction:column; gap:10px;
       animation: fadeUp 0.3s ease both;
+      transition:transform .18s ease, box-shadow .18s ease;
     }
+    .hist-row:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(0,0,0,.35); }
     .hist-top { display:flex; justify-content:space-between; align-items:center; }
     .hist-date { font-weight:900; font-size:1rem; }
     .hist-score { font-weight:900; font-size:1.15rem; }
@@ -1166,7 +1171,7 @@
   'use strict';
 
   /* ── VERSION ────────────────────────────────────── */
-  const APP_VERSION = '1.4.0';
+  const APP_VERSION = '1.5.0';
   document.addEventListener('DOMContentLoaded', () => { const b = document.getElementById('verBadge'); if(b) b.textContent = 'v' + APP_VERSION; });
 
   /* ── STATE ─────────────────────────────────────── */
@@ -1836,6 +1841,22 @@
     for (const [k,v] of Object.entries(SUBJ_EMOJI)) if (s.includes(k)) return v;
     return '📝';
   }
+  const SUBJ_CAT = {
+    math:    ['\u05DE\u05EA\u05DE\u05D8\u05D9\u05E7\u05D4','\u05D7\u05E9\u05D1\u05D4','\u05D2\u05D0\u05D5\u05DE\u05D8\u05E8\u05D9\u05D4'],
+    lang:    ['\u05E9\u05E4\u05D4','\u05E7\u05E8\u05D9\u05D0\u05D4'],
+    science: ['\u05DE\u05D3\u05E2\u05D9\u05DD','\u05DE\u05D3\u05E2 \u05D5\u05D9\u05E6\u05D9\u05E8\u05D4'],
+    sport:   ['\u05D7\u05E0\u05D2','\u05E7\u05E4\u05D5\u05D0\u05E8\u05D4','\u05D1\u05E8\u05D9\u05E7\u05D3\u05E0\u05E1','\u05EA\u05E0\u05D5\u05E2\u05D4'],
+    art:     ['\u05D0\u05D5\u05DE\u05E0\u05D5\u05EA','\u05DE\u05D5\u05E1\u05D9\u05E7\u05D4','\u05DE\u05D5\u05D6\u05D9\u05E7\u05D4'],
+    torah:   ['\u05EA\u05D5\u05E8\u05D4','\u05EA\u05E0\u05DB'],
+    english: ['\u05D0\u05E0\u05D2\u05DC\u05D9\u05EA'],
+    lego:    ['\u05DC\u05D2\u05D5'],
+  };
+  function getSubjCat(s) {
+    for (const [cat, keys] of Object.entries(SUBJ_CAT)) {
+      if (keys.some(k => s.includes(k))) return cat;
+    }
+    return 'other';
+  }
   const DAY_ORDER = ['ראשון','שני','שלישי','רביעי','חמישי','שישי'];
   let schedDay = '';
   function renderSchedule() {
@@ -1882,6 +1903,7 @@
         if (!subj) return;
         const card = document.createElement('div');
         card.className = 'sched-card';
+        card.dataset.cat = getSubjCat(subj);
         card.style.animationDelay = (i * 0.06) + 's';
         card.innerHTML = '<div class="sched-num">' + (i+1) + '</div>'
           + '<div class="sched-emoji">' + getSubjEmoji(subj) + '</div>'
@@ -1946,7 +1968,7 @@
             <div class="hist-sect">
               <span class="hist-si">🌅</span>
               <span class="hist-sl">\u05d1\u05d5\u05e7\u05e8</span>
-              <div class="hist-sb"><div class="hist-sf" style="width:${mPct}%;background:${morningFull?'var(--ok)':'var(--acc)'}"></div></div>
+              <div class="hist-sb"><div class="hist-sf" style="width:0;transition:width .6s cubic-bezier(.4,0,.2,1);background:${morningFull?'var(--ok)':'var(--acc)'}" data-w="${mPct}"></div></div>
               <span class="hist-sn" style="color:${morningFull?'var(--ok)':'var(--acc)'}">${day.morning.done}/${data.tasksPerDay}${morningFull?' \u2713':''}</span>
             </div>`;
 
@@ -1957,7 +1979,7 @@
             <div class="hist-sect">
               <span class="hist-si">\ud83c\udfeb</span>
               <span class="hist-sl">\u05de\u05e2\u05e8\u05db\u05ea</span>
-              <div class="hist-sb"><div class="hist-sf" style="width:${aPct}%;background:${aOk?'var(--ok)':'var(--acc)'}"></div></div>
+              <div class="hist-sb"><div class="hist-sf" style="width:0;transition:width .6s cubic-bezier(.4,0,.2,1);background:${aOk?'var(--ok)':'var(--acc)'}" data-w="${aPct}"></div></div>
               <span class="hist-sn" style="color:${aOk?'var(--ok)':'var(--acc)'}">${day.attendance.present}/${day.attendance.total}</span>
             </div>`;
           }
@@ -1966,7 +1988,7 @@
             <div class="hist-sect">
               <span class="hist-si">\ud83c\udf19</span>
               <span class="hist-sl">\u05e2\u05e8\u05d1</span>
-              <div class="hist-sb"><div class="hist-sf" style="width:${ePct}%;background:${eveningFull?'var(--ok)':'var(--acc)'}"></div></div>
+              <div class="hist-sb"><div class="hist-sf" style="width:0;transition:width .6s cubic-bezier(.4,0,.2,1);background:${eveningFull?'var(--ok)':'var(--acc)'}" data-w="${ePct}"></div></div>
               <span class="hist-sn" style="color:${eveningFull?'var(--ok)':'var(--acc)'}">${day.evening.done}/${data.eveningTotal}${eveningFull?' \u2713':''}</span>
             </div>`;
 
@@ -1980,6 +2002,12 @@
             </div>
             <div class="hist-sects">${sects}</div>`;
           list.appendChild(row);
+          const delay = 60 + i * 55;
+          setTimeout(() => {
+            row.querySelectorAll('.hist-sf[data-w]').forEach(el => {
+              el.style.width = el.dataset.w + '%';
+            });
+          }, delay);
         });
       })
       .withFailureHandler(() => {
@@ -2034,6 +2062,7 @@
     document.getElementById('evCelMsg').textContent = b.msg;
     document.getElementById('evCelOv').classList.add('show');
     _startEvFireworks();
+    setTimeout(() => epicConfetti(), 300);
   };
 
   window.closeEvCel = () => {
