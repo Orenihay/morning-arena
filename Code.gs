@@ -412,3 +412,80 @@ function getEveningHistory(userName, period) {
     .sort((a,b) => b.date.localeCompare(a.date));
   return { days: filtered, totalTasks: EVENING_TASKS.length, totalFullDays: filtered.filter(d => d.done >= EVENING_TASKS.length).length };
 }
+
+// ============================================================
+// FULL HISTORY — combined morning + schedule + evening per day
+// ============================================================
+function getFullHistory(userName, period) {
+  validateUser_(userName);
+  if (!['day','week','month'].includes(period)) period = 'week';
+
+  const todayParts = getTodayStr().split('-').map(Number);
+  const today = new Date(todayParts[0], todayParts[1]-1, todayParts[2]);
+  const maxDays = {day:1, week:7, month:30}[period];
+
+  const HEB = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+
+  function inRange(dateStr) {
+    const [y,m,d] = dateStr.split('-').map(Number);
+    const diff = Math.round((today - new Date(y,m-1,d)) / 86400000);
+    return diff >= 0 && diff < maxDays;
+  }
+
+  const dayMap = {};
+  function ensureDay(dateStr) {
+    if (!dayMap[dateStr]) {
+      const [y,m,d] = dateStr.split('-').map(Number);
+      dayMap[dateStr] = {date:dateStr, dayName:HEB[new Date(y,m-1,d).getDay()], morningMap:{}, attendMap:{}, eveningMap:{}};
+    }
+    return dayMap[dateStr];
+  }
+
+  // Morning (Logs_V2): Date, User, TaskID, TaskTitle, Status, ...
+  const logData = getSheet_().getDataRange().getValues();
+  for (var i = 1; i < logData.length; i++) {
+    var r = logData[i];
+    var date = formatRowDate(r[0]);
+    if (!date || String(r[1]).trim() !== userName || !inRange(date)) continue;
+    var dy = ensureDay(date);
+    dy.morningMap[String(r[2]).trim()] = {done: r[4]===true||r[4]==='TRUE'};
+  }
+
+  // Attendance (Attendance_V1): Date, User, Slot, LessonTitle, Present, ...
+  var attData = getAttendSheet_().getDataRange().getValues();
+  for (var i = 1; i < attData.length; i++) {
+    var r = attData[i];
+    var date = formatRowDate(r[0]);
+    if (!date || String(r[1]).trim() !== userName || !inRange(date)) continue;
+    var dy = ensureDay(date);
+    dy.attendMap[Number(r[2])] = {present: r[4]===true||r[4]==='TRUE'};
+  }
+
+  // Evening (Evening_V1): Date, User, TaskID, TaskTitle, Done, ...
+  var evData = getEveningSheet_().getDataRange().getValues();
+  for (var i = 1; i < evData.length; i++) {
+    var r = evData[i];
+    var date = formatRowDate(r[0]);
+    if (!date || String(r[1]).trim() !== userName || !inRange(date)) continue;
+    var dy = ensureDay(date);
+    dy.eveningMap[String(r[2]).trim()] = {done: r[4]===true||r[4]==='TRUE'};
+  }
+
+  var days = Object.values(dayMap)
+    .sort(function(a,b){return b.date.localeCompare(a.date)})
+    .map(function(d) {
+      var morningDone  = Object.values(d.morningMap).filter(function(t){return t.done}).length;
+      var attendArr    = Object.values(d.attendMap);
+      var attPresent   = attendArr.filter(function(a){return a.present}).length;
+      var eveningDone  = Object.values(d.eveningMap).filter(function(t){return t.done}).length;
+      return {
+        date:        d.date,
+        dayName:     d.dayName,
+        morning:     {done: morningDone,  total: TASKS_CONFIG.length},
+        attendance:  {present: attPresent, total: attendArr.length},
+        evening:     {done: eveningDone,  total: EVENING_TASKS.length}
+      };
+    });
+
+  return {days:days, tasksPerDay:TASKS_CONFIG.length, eveningTotal:EVENING_TASKS.length};
+}
