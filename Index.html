@@ -695,6 +695,32 @@
     .hist-sf { height:100%; border-radius:3px; transition:width .5s ease; }
     .hist-sn { font-size:11px; font-weight:700; min-width:48px; text-align:left; }
     .hist-trophy { font-size:15px; }
+    /* --- ACCORDION HISTORY --- */
+    .hacc { background:var(--s1); border:1px solid var(--glass-border); border-radius:var(--r-lg); overflow:hidden; animation:fadeUp .3s ease both; transition:box-shadow .25s; }
+    .hacc.open { box-shadow:0 4px 24px rgba(0,0,0,.35); border-color:rgba(255,255,255,.12); }
+    .hacc-hd { display:flex; align-items:center; gap:10px; padding:14px 16px; cursor:pointer; user-select:none; }
+    .hacc-left { display:flex; flex-direction:column; min-width:70px; }
+    .hacc-day { font-size:.93rem; font-weight:900; color:var(--tx); }
+    .hacc-date { font-size:.72rem; color:var(--tx-3); font-weight:700; margin-top:1px; }
+    .hacc-badges { display:flex; gap:6px; flex:1; justify-content:flex-end; align-items:center; flex-wrap:wrap; }
+    .hd-badge { font-size:.7rem; font-weight:800; padding:3px 8px; border-radius:20px; display:flex; align-items:center; gap:3px; }
+    .hd-badge.ok { background:rgba(0,230,118,.15); color:var(--ok); }
+    .hd-badge.no { background:rgba(255,100,100,.1); color:#ff6b6b; }
+    .hacc-arr { font-size:1.1rem; color:var(--tx-3); transition:transform .3s cubic-bezier(.4,0,.2,1); margin-left:4px; }
+    .hacc.open .hacc-arr { transform:rotate(90deg); }
+    .hacc-body { max-height:0; overflow:hidden; transition:max-height .4s cubic-bezier(.4,0,.2,1); }
+    .hacc.open .hacc-body { max-height:600px; }
+    .hacc-sects { padding:12px 16px 16px; border-top:1px solid var(--glass-border); display:flex; flex-direction:column; gap:10px; }
+    .hd-sect { display:flex; align-items:center; gap:8px; }
+    .hd-si { font-size:1.05rem; flex-shrink:0; }
+    .hd-sl { font-size:.8rem; font-weight:800; color:var(--tx-2); min-width:52px; }
+    .hd-sb { flex:1; height:8px; background:var(--glass); border-radius:4px; overflow:hidden; }
+    .hd-sf { height:100%; border-radius:4px; width:0; transition:width .65s cubic-bezier(.4,0,.2,1); }
+    .hd-sf.ok { background:var(--ok); box-shadow:0 0 6px var(--ok); }
+    .hd-sf.acc { background:var(--acc); box-shadow:0 0 6px var(--acc-glow); }
+    .hd-sn { font-size:.78rem; font-weight:800; min-width:38px; text-align:right; }
+    .hd-sn.ok { color:var(--ok); }
+    .hd-sn.acc { color:var(--acc); }
     .hist-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:2px; }
 
     /* =============================================
@@ -758,22 +784,25 @@
     .evening-prog-wrap { display:flex; flex-direction:column; gap:4px; }
     .evening-tasks { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
     .evening-task-card {
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      gap:8px; padding:18px 12px;
-      background:var(--glass); border:1.5px solid var(--glass-border);
+      display:flex; align-items:center; gap:14px; padding:14px 15px;
+      background:var(--glass); border:1px solid var(--glass-border);
       border-radius:var(--r-lg); cursor:pointer;
-      transition:all .3s cubic-bezier(.34,1.56,.64,1);
-      animation: fadeUp 0.32s ease both; min-height:120px;
-      position:relative; overflow:hidden; text-align:center;
+      transition:border-color .28s, box-shadow .28s, background .3s;
+      position:relative; overflow:hidden;
+      opacity:0; transform:translateX(18px);
+      animation:cardIn .4s forwards ease-out;
     }
-    .evening-task-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(168,85,247,.18),rgba(236,72,153,.12)); opacity:0; transition:.3s; }
+    .evening-task-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(236,72,153,.08)); opacity:0; transition:.3s; pointer-events:none; }
     .evening-task-card.done::before { opacity:1; }
-    .evening-task-card.done { border-color:rgba(168,85,247,.5); box-shadow:0 0 20px rgba(168,85,247,.2); }
-    .evening-task-icon { font-size:2.4rem; line-height:1; position:relative; z-index:1; }
-    .evening-task-name { font-weight:700; font-size:0.85rem; color:var(--tx); position:relative; z-index:1; }
-    .evening-task-check { font-size:1.1rem; opacity:0; transform:scale(0); transition:all .4s cubic-bezier(.34,1.56,.64,1); position:relative; z-index:1; }
-    .evening-task-card.done .evening-task-check { opacity:1; transform:scale(1); }
-    .evening-task-card:active { transform:scale(0.95); }
+    .evening-task-card.done { border-color:rgba(168,85,247,.45); background:rgba(168,85,247,.07); box-shadow:0 0 18px rgba(168,85,247,.2); }
+    .evening-task-card:active { transform:scale(0.97); }
+    .evening-task-icon { font-size:1.7rem; flex-shrink:0; line-height:1; position:relative; z-index:1; }
+    .evening-task-name { flex:1; font-weight:700; font-size:0.95rem; color:var(--tx); position:relative; z-index:1; }
+    .ev-chk { width:34px; height:34px; border-radius:50%; border:2px solid var(--glass-border); flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:border-color .28s, background .28s; position:relative; z-index:1; }
+    .evening-task-card.done .ev-chk { background:rgba(168,85,247,.85); border-color:rgba(168,85,247,.85); }
+    .ev-chk-mark { stroke:white; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:22; stroke-dashoffset:22; transition:stroke-dashoffset .3s ease .05s; }
+    .evening-task-card.done .ev-chk-mark { stroke-dashoffset:0; }
+    .evening-task-check { display:none; }
     .evening-done-msg { text-align:center; padding:36px 24px; animation: fadeUp 0.6s ease; }
     .evening-done-icon { font-size:4rem; margin-bottom:12px; animation: pop 0.6s cubic-bezier(.34,1.56,.64,1); }
     .evening-done-title { font-size:1.6rem; font-weight:900; color:var(--acc); margin-bottom:8px; }
@@ -1957,57 +1986,72 @@
 
         data.days.forEach((day, i) => {
           const [dy,dm,dd] = day.date.split('-');
-          const morningFull  = day.morning.done >= data.tasksPerDay;
-          const eveningFull  = day.evening.done >= data.eveningTotal;
-          const allFull      = morningFull && eveningFull;
+          const morningFull = day.morning.done >= data.tasksPerDay;
+          const eveningFull = day.evening.done >= data.eveningTotal;
 
-          const mPct  = data.tasksPerDay  ? Math.round(day.morning.done  / data.tasksPerDay  * 100) : 0;
-          const ePct  = data.eveningTotal ? Math.round(day.evening.done  / data.eveningTotal * 100) : 0;
+          const mPct = data.tasksPerDay  ? Math.round(day.morning.done / data.tasksPerDay  * 100) : 0;
+          const ePct = data.eveningTotal ? Math.round(day.evening.done / data.eveningTotal * 100) : 0;
 
-          let sects = `
-            <div class="hist-sect">
-              <span class="hist-si">🌅</span>
-              <span class="hist-sl">\u05d1\u05d5\u05e7\u05e8</span>
-              <div class="hist-sb"><div class="hist-sf" style="width:0;transition:width .6s cubic-bezier(.4,0,.2,1);background:${morningFull?'var(--ok)':'var(--acc)'}" data-w="${mPct}"></div></div>
-              <span class="hist-sn" style="color:${morningFull?'var(--ok)':'var(--acc)'}">${day.morning.done}/${data.tasksPerDay}${morningFull?' \u2713':''}</span>
+          // Header badges
+          const mBadge = `<span class="hd-badge ${morningFull?'ok':'no'}">\uD83C\uDF05 ${morningFull?'\u2713':'\u2717'}</span>`;
+          const eBadge = `<span class="hd-badge ${eveningFull?'ok':'no'}">\uD83C\uDF19 ${eveningFull?'\u2713':'\u2717'}</span>`;
+          let aBadge = '';
+          if (day.attendance && day.attendance.total > 0) {
+            const aOkB = (day.attendance.present / day.attendance.total) >= 0.8;
+            aBadge = `<span class="hd-badge ${aOkB?'ok':'no'}">\uD83C\uDFEB ${aOkB?'\u2713':'\u2717'}</span>`;
+          }
+
+          // Detail sections
+          let sects = `<div class="hd-sect">
+              <span class="hd-si">\uD83C\uDF05</span>
+              <span class="hd-sl">\u05D1\u05D5\u05E7\u05E8</span>
+              <div class="hd-sb"><div class="hd-sf ${morningFull?'ok':'acc'}" data-w="${mPct}"></div></div>
+              <span class="hd-sn ${morningFull?'ok':'acc'}">${day.morning.done}/${data.tasksPerDay}</span>
             </div>`;
 
-          if (day.attendance.total > 0) {
+          if (day.attendance && day.attendance.total > 0) {
             const aPct = Math.round(day.attendance.present / day.attendance.total * 100);
             const aOk  = aPct >= 80;
-            sects += `
-            <div class="hist-sect">
-              <span class="hist-si">\ud83c\udfeb</span>
-              <span class="hist-sl">\u05de\u05e2\u05e8\u05db\u05ea</span>
-              <div class="hist-sb"><div class="hist-sf" style="width:0;transition:width .6s cubic-bezier(.4,0,.2,1);background:${aOk?'var(--ok)':'var(--acc)'}" data-w="${aPct}"></div></div>
-              <span class="hist-sn" style="color:${aOk?'var(--ok)':'var(--acc)'}">${day.attendance.present}/${day.attendance.total}</span>
+            sects += `<div class="hd-sect">
+              <span class="hd-si">\uD83C\uDFEB</span>
+              <span class="hd-sl">\u05E0\u05D5\u05DB\u05D7\u05D5\u05EA</span>
+              <div class="hd-sb"><div class="hd-sf ${aOk?'ok':'acc'}" data-w="${aPct}"></div></div>
+              <span class="hd-sn ${aOk?'ok':'acc'}">${day.attendance.present}/${day.attendance.total}</span>
             </div>`;
           }
 
-          sects += `
-            <div class="hist-sect">
-              <span class="hist-si">\ud83c\udf19</span>
-              <span class="hist-sl">\u05e2\u05e8\u05d1</span>
-              <div class="hist-sb"><div class="hist-sf" style="width:0;transition:width .6s cubic-bezier(.4,0,.2,1);background:${eveningFull?'var(--ok)':'var(--acc)'}" data-w="${ePct}"></div></div>
-              <span class="hist-sn" style="color:${eveningFull?'var(--ok)':'var(--acc)'}">${day.evening.done}/${data.eveningTotal}${eveningFull?' \u2713':''}</span>
+          sects += `<div class="hd-sect">
+              <span class="hd-si">\uD83C\uDF19</span>
+              <span class="hd-sl">\u05E2\u05E8\u05D1</span>
+              <div class="hd-sb"><div class="hd-sf ${eveningFull?'ok':'acc'}" data-w="${ePct}"></div></div>
+              <span class="hd-sn ${eveningFull?'ok':'acc'}">${day.evening.done}/${data.eveningTotal}</span>
             </div>`;
 
           const row = document.createElement('div');
-          row.className = 'hist-row';
+          row.className = 'hacc';
           row.style.animationDelay = `${i*0.055}s`;
+          const isFirst = i === 0;
+          if (isFirst) row.classList.add('open');
+
           row.innerHTML = `
-            <div class="hist-top">
-              <span class="hist-date">${day.dayName} \u2022 ${dd}/${dm}/${dy}</span>
-              ${allFull ? '<span class="hist-trophy">\ud83c\udfc6</span>' : ''}
+            <div class="hacc-hd" onclick="this.closest('.hacc').classList.toggle('open'); const b=this.closest('.hacc'); if(b.classList.contains('open')) b.querySelectorAll('.hd-sf[data-w]').forEach(el=>el.style.width=el.dataset.w+'%')">
+              <div class="hacc-left">
+                <span class="hacc-day">${day.dayName}</span>
+                <span class="hacc-date">${dd}/${dm}</span>
+              </div>
+              <div class="hacc-badges">${mBadge}${aBadge}${eBadge}</div>
+              <span class="hacc-arr">&#8250;</span>
             </div>
-            <div class="hist-sects">${sects}</div>`;
+            <div class="hacc-body">
+              <div class="hacc-sects">${sects}</div>
+            </div>`;
+
           list.appendChild(row);
-          const delay = 60 + i * 55;
-          setTimeout(() => {
-            row.querySelectorAll('.hist-sf[data-w]').forEach(el => {
-              el.style.width = el.dataset.w + '%';
-            });
-          }, delay);
+          if (isFirst) {
+            setTimeout(() => {
+              row.querySelectorAll('.hd-sf[data-w]').forEach(el => { el.style.width = el.dataset.w + '%'; });
+            }, 80);
+          }
         });
       })
       .withFailureHandler(() => {
@@ -2305,7 +2349,7 @@
       card.innerHTML = `
         <div class="evening-task-icon">${task.icon}</div>
         <div class="evening-task-name">${esc(task.title)}</div>
-        <div class="evening-task-check">✓</div>`;
+        <div class="ev-chk"><svg class="ev-chk-mark" viewBox="0 0 24 24" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg></div>`;
       wrap.appendChild(card);
     });
 
