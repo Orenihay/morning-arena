@@ -764,6 +764,31 @@
     .attend-btn.no  { background:rgba(255,75,110,.18);  color:#ff4b6e; }
     .attend-btn.yes.active { background:#00e676; color:#000; box-shadow:0 0 10px rgba(0,230,118,.5); }
     .attend-btn.no.active  { background:#ff4b6e; color:#fff; box-shadow:0 0 10px rgba(255,75,110,.5); }
+    .attend-status-txt { font-size:.7rem; font-weight:800; color:var(--tx-3); min-width:48px; text-align:center; }
+    .attend-status-txt.ok { color:var(--ok); }
+    .attend-status-txt.no { color:#ff4b6e; }
+    .attend-btn:disabled { opacity:.5; cursor:wait; }
+    .attend-date-label { font-size:.72rem; font-weight:700; color:var(--tx-3); text-align:center; padding:4px 0 8px; }
+    /* Attendance history accordion */
+    .attend-acc { background:var(--s1); border:1px solid var(--glass-border); border-radius:var(--r-lg); overflow:hidden; animation:fadeUp .3s ease both; transition:box-shadow .2s; }
+    .attend-acc.open { box-shadow:0 4px 20px rgba(0,0,0,.3); }
+    .attend-acc-hd { display:flex; align-items:center; gap:10px; padding:12px 14px; cursor:pointer; user-select:none; }
+    .ahd-left { flex:1; display:flex; flex-direction:column; gap:5px; }
+    .ahd-date { font-size:.82rem; font-weight:800; color:var(--tx); }
+    .ahd-bar-wrap { height:5px; background:var(--glass); border-radius:3px; overflow:hidden; }
+    .ahd-bar { height:100%; border-radius:3px; transition:width .5s ease; }
+    .ahd-score { font-size:.82rem; font-weight:900; min-width:36px; text-align:right; }
+    .ahd-arr { font-size:1.1rem; color:var(--tx-3); transition:transform .3s; }
+    .attend-acc.open .ahd-arr { transform:rotate(90deg); }
+    .attend-acc-body { max-height:0; overflow:hidden; transition:max-height .4s cubic-bezier(.4,0,.2,1); }
+    .attend-acc.open .attend-acc-body { max-height:400px; }
+    .ahd-lessons { padding:8px 14px 12px; border-top:1px solid var(--glass-border); display:flex; flex-direction:column; gap:7px; }
+    .ahd-lesson { display:flex; align-items:center; gap:8px; font-size:.8rem; }
+    .ahd-slot { width:20px; height:20px; border-radius:50%; background:var(--glass); display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:900; flex-shrink:0; }
+    .ahd-title { flex:1; font-weight:700; color:var(--tx-2); }
+    .ahd-pres { font-weight:800; font-size:.75rem; }
+    .ahd-lesson.ok .ahd-pres { color:var(--ok); }
+    .ahd-lesson.no .ahd-pres { color:#ff4b6e; }
     .attend-hist-wrap { display:flex; flex-direction:column; gap:12px; }
     .attend-hist-day { background:var(--s1); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:12px 14px; display:flex; justify-content:space-between; align-items:center; animation: fadeUp 0.3s ease both; }
     .attend-hist-date { font-weight:800; font-size:0.9rem; }
@@ -1200,7 +1225,7 @@
   'use strict';
 
   /* ── VERSION ────────────────────────────────────── */
-  const APP_VERSION = '1.5.0';
+  const APP_VERSION = '1.7.0';
   document.addEventListener('DOMContentLoaded', () => { const b = document.getElementById('verBadge'); if(b) b.textContent = 'v' + APP_VERSION; });
 
   /* ── STATE ─────────────────────────────────────── */
@@ -2070,8 +2095,14 @@
   ];
 
   window.onFinish = () => {
-    const doneCount = Object.values(stateMap).filter(s => s?.status).length;
-    if (doneCount === 0) { sound('error'); toast('סמן לפחות משימה אחת לפני השיגור! ⚡'); return; }
+    const doneCount  = Object.values(stateMap).filter(s => s?.status).length;
+    const totalCount = Object.keys(stateMap).length;
+    if (doneCount === 0) { sound('error'); toast('\u05E1\u05DE\u05DF \u05DC\u05E4\u05D7\u05D5\u05EA \u05DE\u05E9\u05D9\u05DE\u05D4 \u05D0\u05D7\u05EA \u05DC\u05E4\u05E0\u05D9 \u05D4\u05E9\u05D9\u05D2\u05D5\u05E8! \u26A1'); return; }
+    if (doneCount < totalCount) {
+      const left = totalCount - doneCount;
+      toast('\uD83D\uDCAA \u05E2\u05D5\u05D3 ' + left + ' \u05DE\u05E9\u05D9\u05DE\u05D5\u05EA \u2014 \u05D0\u05EA\u05D4 \u05DB\u05DE\u05E2\u05D8 \u05E9\u05DD! \u05E6\u05D1\u05D5\u05E8 \u05D1\u05EA\u05DB\u05DC\u05D9\u05EA \uD83D\uDE80');
+      return;
+    }
     sound('win');
     if (navigator.vibrate) navigator.vibrate([30,15,50,15,80]);
 
@@ -2215,7 +2246,14 @@
       const btn = document.createElement('button');
       btn.className = 'attend-day-tab' + (day === todayName ? ' today-mark' : '') + (day === attendDay ? ' active' : '');
       btn.textContent = day + (day === todayName ? ' ★' : '');
-      btn.onclick = () => { attendDay = day; renderAttendanceLessons(); };
+      btn.onclick = () => {
+        attendDay = day;
+        const ds = getDateForDay(day);
+        google.script.run
+          .withSuccessHandler(res => { attendData = res.attendance || {}; renderAttendanceLessons(); })
+          .withFailureHandler(() => { attendData = {}; renderAttendanceLessons(); })
+          .getAttendanceData(currentUser, ds);
+      };
       tabsEl.appendChild(btn);
     });
 
@@ -2230,6 +2268,18 @@
   function getTodayDateStr() {
     const d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function getDateForDay(dayName) {
+    // Returns the most recent calendar date for the given Hebrew day name
+    const d = new Date();
+    const jsDay = d.getDay(); // 0=Sun..6=Sat, Fri=5, Sat=6
+    const dayIdx = DAY_ORDER.indexOf(dayName); // 0=Sun..5=Fri
+    if (dayIdx < 0) return getTodayDateStr();
+    let diff = jsDay - dayIdx;
+    if (diff < 0) diff += 7;
+    const target = new Date(d);
+    target.setDate(d.getDate() - diff);
+    return target.getFullYear() + '-' + String(target.getMonth()+1).padStart(2,'0') + '-' + String(target.getDate()).padStart(2,'0');
   }
 
   function renderAttendanceLessons() {
@@ -2252,24 +2302,38 @@
         <div class="attend-lesson-slot">${slot}</div>
         <div class="attend-lesson-emoji">${getSubjEmoji(subj)}</div>
         <div class="attend-lesson-name">${esc(subj)}</div>
+        <div class="attend-status-txt ${present===true?'ok':present===false?'no':''}">${present===true?'\u05E0\u05DB\u05E0\u05E1\u05EA\u05D9':present===false?'\u05DC\u05D0 \u05E0\u05DB\u05E0\u05E1\u05EA\u05D9':rec&&rec.saving?'\u05E9\u05D5\u05DE\u05E8...':'\u05DC\u05D0 \u05D3\u05D5\u05D5\u05D7'}</div>
         <div class="attend-btn-group">
-          <button class="attend-btn yes${present===true?' active':''}" onclick="setAttend(${slot},'${esc(subj)}',true)" title="נכנסתי">✓</button>
-          <button class="attend-btn no${present===false?' active':''}"  onclick="setAttend(${slot},'${esc(subj)}',false)" title="לא נכנסתי">✗</button>
+          <button class="attend-btn yes${present===true?' active':''}" onclick="setAttend(${slot},'${esc(subj)}',true)" ${rec&&rec.saving?'disabled':''}>&#10003; \u05E0\u05DB\u05E0\u05E1\u05EA\u05D9</button>
+          <button class="attend-btn no${present===false?' active':''}"  onclick="setAttend(${slot},'${esc(subj)}',false)" ${rec&&rec.saving?'disabled':''}>\u2717 \u05DC\u05D0 \u05E0\u05DB\u05E0\u05E1\u05EA\u05D9</button>
         </div>`;
       listEl.appendChild(card);
     });
 
     const total = subjects.length;
-    document.getElementById('attendProgLabel').textContent = reported + '/' + total + ' שיעורים דווחו';
+    const selDate = getDateForDay(attendDay);
+    const [sdy,sdm,sdd] = selDate.split('-');
+    const dateDisplay = sdd + '/' + sdm + '/' + sdy;
+    document.getElementById('attendProgLabel').textContent = reported + '/' + total + ' \u05E9\u05D9\u05E2\u05D5\u05E8\u05D9\u05DD \u05D3\u05D5\u05D5\u05D7\u05D5 \u2022 ' + dateDisplay;
     document.getElementById('attendProgFill').style.width = (total ? Math.round(reported/total*100) : 0) + '%';
   }
 
   window.setAttend = (slot, title, present) => {
-    attendData[slot] = { present, title };
+    const prev = attendData[slot] ? Object.assign({}, attendData[slot]) : undefined;
+    attendData[slot] = { present, title, saving: true };
     renderAttendanceLessons();
+    const dateStr = getDateForDay(attendDay);
     google.script.run
-      .withFailureHandler(() => toast('לא ניתן לשמור נוכחות'))
-      .setAttendance(currentUser, slot, title, present, getTodayDateStr());
+      .withSuccessHandler(() => {
+        if (attendData[slot]) { delete attendData[slot].saving; }
+        renderAttendanceLessons();
+      })
+      .withFailureHandler(() => {
+        attendData[slot] = prev;
+        renderAttendanceLessons();
+        toast('\u05DC\u05D0 \u05E0\u05D9\u05EA\u05DF \u05DC\u05E9\u05DE\u05D5\u05E8 \u05E0\u05D5\u05DB\u05D7\u05D5\u05EA \u2014 \u05E0\u05E1\u05D4 \u05E9\u05D5\u05D1');
+      })
+      .setAttendance(currentUser, slot, title, present, dateStr);
   };
 
   window.loadAttendHistory = (period, btn) => {
@@ -2283,7 +2347,7 @@
         document.getElementById('attendKpiTot').textContent = stats.totalPresent;
         list.innerHTML = '';
         if (!stats.days.length) {
-          list.innerHTML = '<p style="color:var(--tx-3);text-align:center;padding:28px;font-weight:700;">אין היסטוריה עדיין.</p>';
+          list.innerHTML = '<p style="color:var(--tx-3);text-align:center;padding:28px;font-weight:700;">\u05D0\u05D9\u05DF \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05E2\u05D3\u05D9\u05D9\u05DF.</p>';
           return;
         }
         stats.days.forEach((day, i) => {
@@ -2291,16 +2355,39 @@
           const total = day.present + day.absent;
           const pct   = total ? Math.round(day.present/total*100) : 0;
           const color = pct >= 80 ? 'var(--ok)' : pct >= 50 ? 'var(--warn)' : 'var(--err)';
+          const isOpen = i === 0;
+
+          // Build lesson detail rows
+          const lessonRows = (day.lessons || [])
+            .map(l => `<div class="ahd-lesson ${l.present?'ok':'no'}">
+              <span class="ahd-slot">${l.slot}</span>
+              <span class="ahd-title">${esc(l.title)}</span>
+              <span class="ahd-pres">${l.present?'\u2713 \u05E0\u05DB\u05E0\u05E1\u05EA\u05D9':'\u2717 \u05DC\u05D0 \u05E0\u05DB\u05E0\u05E1\u05EA\u05D9'}</span>
+            </div>`).join('');
+
           const el = document.createElement('div');
-          el.className = 'attend-hist-day'; el.style.animationDelay = i * 0.05 + 's';
-          el.innerHTML = `<div><div class="attend-hist-date">📅 ${dd}/${dm}/${dy}</div>
-            <div style="height:4px;width:${pct}%;background:${color};border-radius:2px;margin-top:6px;transition:width .6s"></div></div>
-            <div class="attend-hist-score" style="color:${color}">${day.present}/${total} (${pct}%)</div>`;
+          el.className = 'attend-acc' + (isOpen ? ' open' : '');
+          el.style.animationDelay = i * 0.05 + 's';
+          el.innerHTML = `
+            <div class="attend-acc-hd" onclick="this.closest('.attend-acc').classList.toggle('open')">
+              <div class="ahd-left">
+                <span class="ahd-date">\uD83D\uDCC5 ${dd}/${dm}</span>
+                <div class="ahd-bar-wrap">
+                  <div class="ahd-bar" style="width:${pct}%;background:${color}"></div>
+                </div>
+              </div>
+              <span class="ahd-score" style="color:${color}">${day.present}/${total}</span>
+              <span class="ahd-arr">\u203A</span>
+            </div>
+            <div class="attend-acc-body">
+              <div class="ahd-lessons">${lessonRows || '<p style="color:var(--tx-3);font-size:.8rem;padding:4px 0">\u05D0\u05D9\u05DF \u05E4\u05D9\u05E8\u05D5\u05D8 \u05E9\u05D9\u05E2\u05D5\u05E8\u05D9\u05DD</p>'}</div>
+            </div>`;
           list.appendChild(el);
         });
       })
-      .withFailureHandler(() => { document.getElementById('attendHistList').innerHTML = '<p style="color:var(--err);text-align:center;padding:28px;">שגיאה בטעינה</p>'; })
-      .getAttendanceHistory(currentUser, period);
+      .withFailureHandler(() => { document.getElementById('attendHistList').innerHTML = '<p style="color:var(--err);text-align:center;padding:28px;">\u05E9\u05D2\u05D9\u05D0\u05D4 \u05D1\u05D8\u05E2\u05D9\u05E0\u05D4</p>'; })
+      .getAttendanceHistoryDetailed(currentUser, period);
+  };
   };
 
   /* ── EVENING ROUTINE MODULE ─────────────────────── */

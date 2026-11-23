@@ -111,7 +111,7 @@ function getUserDashboardData(userName) {
     }
   }
 
-  Object.keys(dailyCounts).forEach(d => { if (dailyCounts[d] >= 7) completedDates.add(d); });
+  Object.keys(dailyCounts).forEach(d => { if (dailyCounts[d] >= 10) completedDates.add(d); });
 
   return {
     user:       userName,
@@ -222,7 +222,7 @@ function getHistoryStats(userName, period) {
     .filter(item => {
       const [y,m,d] = item.date.split('-').map(Number);
       const diff    = Math.round((today - new Date(y,m-1,d)) / 86400000);
-      return diff >= 0 && diff <= maxDays;
+      return diff >= 0 && diff < maxDays;
     })
     .sort((a,b) => b.date.localeCompare(a.date));
 
@@ -313,7 +313,7 @@ function getAttendanceHistory(userName, period) {
   const today = new Date(todayParts[0], todayParts[1]-1, todayParts[2]);
   const maxDays = { week:7, month:30, term:90 }[period];
   const filtered = Object.values(dailyMap)
-    .filter(item => { const [y,m,d] = item.date.split('-').map(Number); const diff = Math.round((today - new Date(y,m-1,d))/86400000); return diff >= 0 && diff <= maxDays; })
+    .filter(item => { const [y,m,d] = item.date.split('-').map(Number); const diff = Math.round((today - new Date(y,m-1,d))/86400000); return diff >= 0 && diff < maxDays; })
     .sort((a,b) => b.date.localeCompare(a.date));
   const totalPresent  = filtered.reduce((s,i) => s + i.present, 0);
   const totalLessons  = filtered.reduce((s,i) => s + i.present + i.absent, 0);
@@ -408,7 +408,7 @@ function getEveningHistory(userName, period) {
   const today = new Date(todayParts[0], todayParts[1]-1, todayParts[2]);
   const maxDays = { week:7, month:30 }[period];
   const filtered = Object.values(dailyMap)
-    .filter(item => { const [y,m,d] = item.date.split('-').map(Number); const diff = Math.round((today - new Date(y,m-1,d))/86400000); return diff >= 0 && diff <= maxDays; })
+    .filter(item => { const [y,m,d] = item.date.split('-').map(Number); const diff = Math.round((today - new Date(y,m-1,d))/86400000); return diff >= 0 && diff < maxDays; })
     .sort((a,b) => b.date.localeCompare(a.date));
   return { days: filtered, totalTasks: EVENING_TASKS.length, totalFullDays: filtered.filter(d => d.done >= EVENING_TASKS.length).length };
 }
@@ -416,6 +416,57 @@ function getEveningHistory(userName, period) {
 // ============================================================
 // FULL HISTORY — combined morning + schedule + evening per day
 // ============================================================
+// ── Attendance day detail ──────────────────────────────────
+function getAttendanceDayDetail(userName, dateStr) {
+  validateUser_(userName);
+  const sheet = getAttendSheet_();
+  const data  = sheet.getDataRange().getValues();
+  const lessons = [];
+  for (let i = 1; i < data.length; i++) {
+    const row  = data[i];
+    const date = formatRowDate(row[0]);
+    const user = String(row[1]).trim();
+    if (date !== dateStr || user !== userName) continue;
+    lessons.push({
+      slot:    Number(row[2]),
+      title:   String(row[3]),
+      present: row[4] === true || row[4] === 'TRUE'
+    });
+  }
+  lessons.sort((a,b) => a.slot - b.slot);
+  return { lessons };
+}
+
+// ── Enhanced attendance history with lesson lists ──────────
+function getAttendanceHistoryDetailed(userName, period) {
+  validateUser_(userName);
+  if (!['week','month','term'].includes(period)) period = 'week';
+  const sheet = getAttendSheet_();
+  const data  = sheet.getDataRange().getValues();
+  const dailyMap = {};
+  for (let i = 1; i < data.length; i++) {
+    const row   = data[i];
+    const date  = formatRowDate(row[0]);
+    const user  = String(row[1]).trim();
+    const slot  = Number(row[2]);
+    const title = String(row[3]);
+    const pres  = row[4] === true || row[4] === 'TRUE';
+    if (!date || user !== userName) continue;
+    if (!dailyMap[date]) dailyMap[date] = { date, present:0, absent:0, lessons:[] };
+    dailyMap[date].lessons.push({ slot, title, present: pres });
+    if (pres) dailyMap[date].present++; else dailyMap[date].absent++;
+  }
+  const todayParts = getTodayStr().split('-').map(Number);
+  const today = new Date(todayParts[0], todayParts[1]-1, todayParts[2]);
+  const maxDays = { week:7, month:30, term:90 }[period];
+  const filtered = Object.values(dailyMap)
+    .filter(item => { const [y,m,d] = item.date.split('-').map(Number); const diff = Math.round((today - new Date(y,m-1,d))/86400000); return diff >= 0 && diff < maxDays; })
+    .sort((a,b) => b.date.localeCompare(a.date));
+  filtered.forEach(day => day.lessons.sort((a,b) => a.slot - b.slot));
+  const totalPresent = filtered.reduce((s,i) => s + i.present, 0);
+  const totalLessons = filtered.reduce((s,i) => s + i.present + i.absent, 0);
+  return { days: filtered, totalPresent, totalLessons, avgPercent: totalLessons ? Math.round(totalPresent/totalLessons*100) : 0 };
+}
 function getFullHistory(userName, period) {
   validateUser_(userName);
   if (!['day','week','month'].includes(period)) period = 'week';
