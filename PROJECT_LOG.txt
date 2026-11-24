@@ -1,0 +1,100 @@
+﻿Morning Arena - Project Log
+============================
+
+2026-11-23 | v1.5.0 - Animation Upgrade
+- Schedule subject color-coding by category (math/lang/science/sport/art/torah/english/lego)
+- XP bar shimmer animation
+- Evening confetti (epicConfetti)
+- History bars animate from 0 on render
+- Hover effects on schedule cards and task rows
+
+2026-11-23 | v1.6.0 - History Accordion + Evening Redesign
+- History: accordion per day (collapsed with 3 badges: morning/attendance/evening tick/cross)
+- Evening tasks: redesigned from 2-column grid to horizontal list matching morning style (SVG checkmark)
+- Task rename: "סידרתי את המיטה והחדר" → "סידרתי את המיטה" in Code.gs
+
+2026-11-23 | v1.7.0 - 6 Bug Fixes
+- CRITICAL: Date bug fixed — attendance now saved under correct calendar date per day name (getDateForDay)
+- CRITICAL: Attendance history shows per-lesson detail via getAttendanceHistoryDetailed
+- Streak threshold raised 7→10
+- History window fix: diff < maxDays (was <=)
+- Optimistic UI without rollback on save failure (attendance)
+- Morning celebration allowed with just 1 task (shows encouragement toast otherwise)
+- Deployed to Google Apps Script
+
+2026-11-23 | Preview3D.html - Standalone 3D Preview
+- NEW FILE: Preview3D.html (standalone, no changes to Index.html or Code.gs)
+- Three.js r128 from cdnjs
+- Procedural bedroom scene: floor (wood planks), walls, window with sunlight shaft, bed, nightstand+lamp, rug
+- Animated dust particles in sunlight
+- 3D child character (age 9-10, pajamas): torso, head with facial features, arms with elbow pivot, legs with knee pivot
+- 4 task animations triggered by UI buttons:
+    1. קום מהמיטה (Wake up) — lies in bed → sits up → swing legs → stand + stretch
+    2. צחצח שיניים (Brush teeth) — arm raises to face → back-and-forth brushing motion
+    3. התלבש (Get dressed) — arms up → flash costume change (pajamas → school uniform)
+    4. ארוז תיק (Pack bag) — bend and pick up → bag appears on back
+- Idle breathing animation (chest/head subtle sine wave)
+- 360° orbit controls (drag) + scroll/pinch zoom
+- Progress bar toward school departure
+- FPS counter overlay (top right)
+- Loading screen with progress bar
+- Hebrew UI, RTL layout
+- Published as Artifact: https://claude.ai/artifact/L97mCCLZyBbWKc4agvUP73
+
+2026-11-23 | v1.8.0 - Evening tasks match morning style
+- Evening tasks (.evening-tasks): changed from 2-column grid to flex column
+- Evening task cards now use .task-card class (identical CSS to morning)
+- Evening task HTML: .task-emoji icon square + .task-info + .chk-btn circle (SVG checkmark)
+- Bump APP_VERSION to 1.8.0
+
+2026-11-23 | Preview3D.html v3 - Character-only, school Arazim logo, player selection
+- Removed entire bedroom scene; pure dark gradient background with shadow plane only
+- 3-point lighting: key/fill/rim for premium character lighting
+- 2K shadow maps (2048x2048), DPR=2, ACESFilmic tonemapping
+- Player selector (Alon/Eitan) — pajama colors change per player
+  - Alon: blue stripes; Eitan: green stripes
+  - Both have winter long-sleeve cuffs detail
+- School uniform: Arazim logo on chest (procedural canvas: cedar tree + "ארזים" text)
+- Long-sleeve school uniform: forearms also switch to school material when dressed
+- Improved animations: wake up (big morning stretch + spring arms), brush teeth (9Hz oscillation),
+  get dressed (school Arazim uniform), pack bag (shrug + bag appears)
+- School uniform long pants with cuffs
+2026-11-23 | v1.9.0 - Evening style matches morning + Child-friendly history
+- Evening tasks: same .task-card class as morning (single column, emoji square + chk-btn circle)
+- History: added day medal (trophy/star based on % complete) next to day name
+- History: added daily % label in subtitle (e.g. "שני 23/11 • 85%")
+- History: added cheer text inside expanded body ("יום מושלם! 🎉", "כמעט מושלם! 💪" etc.)
+- History: bigger badges (font .82rem, padding 5px 11px), taller bars (11px), larger fonts
+- Bump APP_VERSION to 1.9.0
+
+2026-11-24 | v1.9.2 - Version badge visibility fix
+- ver-badge opacity raised from 0.20 to 0.55 so version shows in bottom center
+- Photos pending: avatar circles ready, awaiting user to supply photos of Alon/Eitan
+
+2026-11-24 | v1.9.5 - Avatar photos always bright
+- .avatar-face img: added width/height 100%, object-fit:cover, border-radius:50% — photo now fills circle fully, no dark background showing
+- filter: brightness(1.08) contrast(1.04) on both .avatar-face img and .topbar-avatar — photos bright on all screens
+- Bump APP_VERSION to 1.9.5
+
+2026-11-24 | v1.9.4 - Topbar avatar spinning rings + pulse on task completion
+- Added .topbar-av-wrap wrapper with two thin spinning rings (.tav-ring-1/2) around the topbar avatar
+- Rings spin continuously (3.2s / 2.2s, opposite directions) using @keyframes tavSpin
+- On task check: .ring-pulse class added for 900ms → rings speed up (.4s/.3s), glow brighter, avatar box-shadow intensifies
+- Pulse triggered in both onToggle (morning) and toggleEveningTask (evening)
+- Sound (check/uncheck) and particle burst unchanged — purely additive change
+- Bump APP_VERSION to 1.9.4
+
+2026-11-24 | v1.9.3 - Per-task icon animations restored (gentle eiFloat)
+- New @keyframes eiFloat: 0%/100% at origin, 50% → translateY(-6px) scale(1.07) — matches avatar float quality
+- ICON_ANIMS[6]: all use eiFloat with staggered durations (3.2s–4.0s) and delays (0s–1.5s)
+- Wrapper <span class="ei"> inside .task-emoji carries the animation inline style per task index
+- Animations stop (animation:none) on .task-card.done so completed tasks show scale+rotate state only
+- Applied to both morning tasks (renderTasks) and evening tasks (renderEvening)
+- Bump APP_VERSION to 1.9.3
+- All existing features preserved (GAS, history, attendance, profiles, kavod, chord audio)
+
+2026-11-23 | v1.9.1 - Critical bug fix: selectProfile not defined
+- Root cause: extra orphan `};` on line 2402 (after loadAttendHistory) closed the IIFE prematurely
+- The `;` after `}` appeared inside the grouping `(...)` → SyntaxError: Unexpected token ';'
+- All window.* functions (selectProfile, etc.) were undefined because IIFE never ran
+- Fix: removed the extra `};` — IIFE now closes correctly at line 2531

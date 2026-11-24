@@ -242,6 +242,13 @@
       0%,100% { transform: translateY(0) scale(1); }
       50%      { transform: translateY(-7px) scale(1.05); }
     }
+    /* Photo always fills circle, never shows dark background */
+    .avatar-face img {
+      width: 100%; height: 100%;
+      object-fit: cover; border-radius: 50%;
+      display: block;
+      filter: brightness(1.08) contrast(1.04);
+    }
 
     .player-name {
       font-size: 2.1rem; font-weight: 900;
@@ -307,13 +314,56 @@
       0% { transform: scale(1) rotate(-4deg); }
       100%{ transform: scale(1.25) rotate(4deg); }
     }
+    /* Topbar avatar with spinning rings */
+    .topbar-av-wrap {
+      position: relative;
+      width: 40px; height: 40px;
+      flex-shrink: 0;
+    }
     .topbar-avatar {
       width: 40px; height: 40px; border-radius: 50%;
       object-fit: cover;
       border: 2px solid var(--acc);
       box-shadow: 0 0 10px var(--acc-glow);
-      flex-shrink: 0;
-      transition: border-color 0.3s, box-shadow 0.3s;
+      position: relative; z-index: 1;
+      filter: brightness(1.08) contrast(1.04);
+      transition: border-color 0.3s, box-shadow 0.3s, filter 0.3s;
+    }
+    .tav-ring {
+      position: absolute; border-radius: 50%;
+      border: 1.5px solid transparent;
+      pointer-events: none;
+      transition: opacity .4s, border-color .4s;
+    }
+    .tav-ring-1 {
+      inset: -5px;
+      border-top-color: var(--acc); border-right-color: var(--acc);
+      animation: tavSpin 3.2s linear infinite;
+      opacity: .55;
+    }
+    .tav-ring-2 {
+      inset: -2px;
+      border-bottom-color: var(--acc2); border-left-color: var(--acc2);
+      animation: tavSpin 2.2s linear infinite reverse;
+      opacity: .35;
+    }
+    @keyframes tavSpin { to { transform: rotate(360deg); } }
+
+    /* Pulse on task completion */
+    .topbar-av-wrap.ring-pulse .tav-ring-1 {
+      animation-duration: .4s;
+      opacity: 1;
+      border-top-color: #fff; border-right-color: var(--acc);
+      filter: drop-shadow(0 0 6px var(--acc));
+    }
+    .topbar-av-wrap.ring-pulse .tav-ring-2 {
+      animation-duration: .3s;
+      opacity: .9;
+      border-bottom-color: #fff; border-left-color: var(--acc2);
+      filter: drop-shadow(0 0 5px var(--acc2));
+    }
+    .topbar-av-wrap.ring-pulse .topbar-avatar {
+      box-shadow: 0 0 22px var(--acc-glow), 0 0 8px var(--acc);
     }
     .topbar-date {
       display:flex; flex-direction:column; align-items:center; gap:1px;
@@ -468,10 +518,17 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 1.75rem; flex-shrink: 0;
       transition: var(--spring);
+      overflow: visible;
     }
+    .task-emoji .ei { display: inline-block; transform-origin: center; }
     .task-card.done .task-emoji {
       background: rgba(0,230,118,.16); border-color: rgba(0,230,118,.32);
       transform: scale(1.1) rotate(-4deg);
+    }
+    .task-card.done .task-emoji .ei { animation: none !important; }
+    @keyframes eiFloat {
+      0%,100% { transform: translateY(0) scale(1); }
+      50%      { transform: translateY(-6px) scale(1.07); }
     }
 
     .task-info { flex: 1; min-width: 0; }
@@ -700,10 +757,12 @@
     .hacc.open { box-shadow:0 4px 24px rgba(0,0,0,.35); border-color:rgba(255,255,255,.12); }
     .hacc-hd { display:flex; align-items:center; gap:10px; padding:14px 16px; cursor:pointer; user-select:none; }
     .hacc-left { display:flex; flex-direction:column; min-width:70px; }
-    .hacc-day { font-size:.93rem; font-weight:900; color:var(--tx); }
+    .hacc-day { font-size:1.05rem; font-weight:900; color:var(--tx); }
     .hacc-date { font-size:.72rem; color:var(--tx-3); font-weight:700; margin-top:1px; }
     .hacc-badges { display:flex; gap:6px; flex:1; justify-content:flex-end; align-items:center; flex-wrap:wrap; }
-    .hd-badge { font-size:.7rem; font-weight:800; padding:3px 8px; border-radius:20px; display:flex; align-items:center; gap:3px; }
+    .hd-badge { font-size:.82rem; font-weight:800; padding:5px 11px; border-radius:20px; display:flex; align-items:center; gap:4px; }
+    .day-medal { font-size:1.4rem; flex-shrink:0; margin-right:2px; }
+    .day-cheer { font-size:.8rem; font-weight:800; padding:8px 0 2px; text-align:center; letter-spacing:.2px; }
     .hd-badge.ok { background:rgba(0,230,118,.15); color:var(--ok); }
     .hd-badge.no { background:rgba(255,100,100,.1); color:#ff6b6b; }
     .hacc-arr { font-size:1.1rem; color:var(--tx-3); transition:transform .3s cubic-bezier(.4,0,.2,1); margin-left:4px; }
@@ -714,11 +773,11 @@
     .hd-sect { display:flex; align-items:center; gap:8px; }
     .hd-si { font-size:1.05rem; flex-shrink:0; }
     .hd-sl { font-size:.8rem; font-weight:800; color:var(--tx-2); min-width:52px; }
-    .hd-sb { flex:1; height:8px; background:var(--glass); border-radius:4px; overflow:hidden; }
+    .hd-sb { flex:1; height:11px; background:var(--glass); border-radius:5px; overflow:hidden; }
     .hd-sf { height:100%; border-radius:4px; width:0; transition:width .65s cubic-bezier(.4,0,.2,1); }
     .hd-sf.ok { background:var(--ok); box-shadow:0 0 6px var(--ok); }
     .hd-sf.acc { background:var(--acc); box-shadow:0 0 6px var(--acc-glow); }
-    .hd-sn { font-size:.78rem; font-weight:800; min-width:38px; text-align:right; }
+    .hd-sn { font-size:.88rem; font-weight:800; min-width:40px; text-align:right; }
     .hd-sn.ok { color:var(--ok); }
     .hd-sn.acc { color:var(--acc); }
     .hist-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:2px; }
@@ -807,7 +866,7 @@
     .evening-prog-fill { height:100%; background:linear-gradient(90deg,#a855f7,#ec4899); border-radius:4px; transition:width .6s cubic-bezier(.34,1.56,.64,1); }
     .evening-prog-label { font-size:0.78rem; color:var(--tx-3); font-weight:700; }
     .evening-prog-wrap { display:flex; flex-direction:column; gap:4px; }
-    .evening-tasks { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .evening-tasks { display:flex; flex-direction:column; gap:10px; }
     .evening-task-card {
       display:flex; align-items:center; gap:14px; padding:14px 15px;
       background:var(--glass); border:1px solid var(--glass-border);
@@ -975,7 +1034,7 @@
       pointer-events:none;
     }
     .toast.show { transform:translateX(-50%) translateY(0); }
-    .ver-badge { position:fixed; bottom:6px; left:50%; transform:translateX(-50%); font-size:10px; font-weight:700; letter-spacing:.8px; color:rgba(255,255,255,.2); pointer-events:none; z-index:5; font-family:monospace; }
+    .ver-badge { position:fixed; bottom:6px; left:50%; transform:translateX(-50%); font-size:10px; font-weight:700; letter-spacing:.8px; color:rgba(255,255,255,.55); pointer-events:none; z-index:5; font-family:monospace; }
 
     /* =============================================
        A11Y & UTILS
@@ -1049,7 +1108,11 @@
   <!-- Top Bar -->
   <div class="top-bar">
     <button class="back-btn" onclick="backToProfiles()">← החלף שחקן</button>
-    <img id="topAvatarImg" class="topbar-avatar" src="" alt="" aria-hidden="true">
+    <div class="topbar-av-wrap" id="topAvWrap">
+      <div class="tav-ring tav-ring-1"></div>
+      <div class="tav-ring tav-ring-2"></div>
+      <img id="topAvatarImg" class="topbar-avatar" src="" alt="" aria-hidden="true">
+    </div>
     <button class="topbar-date" id="topbarDateBtn" onclick="switchTab('schedule')">
       <span class="topbar-day"  id="topbarDay">יום א'</span>
       <span class="topbar-dnum" id="topbarDnum">--/--</span>
@@ -1225,7 +1288,7 @@
   'use strict';
 
   /* ── VERSION ────────────────────────────────────── */
-  const APP_VERSION = '1.7.0';
+  const APP_VERSION = '1.9.5';
   document.addEventListener('DOMContentLoaded', () => { const b = document.getElementById('verBadge'); if(b) b.textContent = 'v' + APP_VERSION; });
 
   /* ── STATE ─────────────────────────────────────── */
@@ -1234,6 +1297,16 @@
   let stateMap    = {};
   let timerLoop   = null;
   const LOCK_SECS = 5 * 60;
+
+  /* Per-task icon animations — gentle float, staggered per index */
+  const ICON_ANIMS = [
+    'animation:eiFloat 3.5s ease-in-out infinite',
+    'animation:eiFloat 3.8s ease-in-out .5s infinite',
+    'animation:eiFloat 3.2s ease-in-out 1.0s infinite',
+    'animation:eiFloat 4.0s ease-in-out 1.5s infinite',
+    'animation:eiFloat 3.6s ease-in-out .8s infinite',
+    'animation:eiFloat 3.4s ease-in-out 1.2s infinite',
+  ];
   const pending   = new Set();
 
   /* ── AUDIO ─────────────────────────────────────── */
@@ -1411,7 +1484,7 @@
       }
 
       card.innerHTML = `
-        <div class="task-emoji" aria-hidden="true">${esc(task.icon||'•')}</div>
+        <div class="task-emoji" aria-hidden="true"><span class="ei" style="${ICON_ANIMS[i % ICON_ANIMS.length]}">${esc(task.icon||'•')}</span></div>
         <div class="task-info">
           <div class="task-title">${esc(task.title)}</div>
           <div>${sub}${cdown}</div>
@@ -1486,6 +1559,11 @@
     if (next) {
       const btn = document.querySelector(`.chk-btn[data-id="${taskId}"]`);
       if (btn) burstAt(btn);
+      const wrap = document.getElementById('topAvWrap');
+      if (wrap) {
+        wrap.classList.add('ring-pulse');
+        setTimeout(() => wrap.classList.remove('ring-pulse'), 900);
+      }
     }
 
     stateMap[taskId] = { status:next, locked:false, remainingSeconds: next ? LOCK_SECS : 0 };
@@ -2021,6 +2099,12 @@
           const mBadge = `<span class="hd-badge ${morningFull?'ok':'no'}">\uD83C\uDF05 ${morningFull?'\u2713':'\u2717'}</span>`;
           const eBadge = `<span class="hd-badge ${eveningFull?'ok':'no'}">\uD83C\uDF19 ${eveningFull?'\u2713':'\u2717'}</span>`;
           let aBadge = '';
+          // Day medal & cheer
+          const totalDone = day.morning.done + day.evening.done;
+          const totalPoss = data.tasksPerDay + data.eveningTotal;
+          const dayPct = totalPoss ? Math.round(totalDone / totalPoss * 100) : 0;
+          const medal = dayPct === 100 ? '\uD83C\uDFC6' : dayPct >= 80 ? '\uD83C\uDF1F' : dayPct >= 50 ? '\u2B50' : '\uD83D\uDCAB';
+          const cheer = dayPct === 100 ? '\u05D9\u05D5\u05DD \u05DE\u05D5\u05E9\u05DC\u05DD! \uD83C\uDF89' : dayPct >= 80 ? '\u05DB\u05DE\u05E2\u05D8 \u05DE\u05D5\u05E9\u05DC\u05DD! \uD83D\uDCAA' : dayPct >= 50 ? '\u05DE\u05D7\u05E8 \u05D9\u05D4\u05D9\u05D4 \u05D9\u05D5\u05EA\u05E8 \u05D8\u05D5\u05D1! \uD83C\uDF1F' : '\u05DE\u05D7\u05E8 \u05EA\u05EA\u05D7\u05D9\u05DC \u05DE\u05D7\u05D3\u05E9! \uD83D\uDE80';
           if (day.attendance && day.attendance.total > 0) {
             const aOkB = (day.attendance.present / day.attendance.total) >= 0.8;
             aBadge = `<span class="hd-badge ${aOkB?'ok':'no'}">\uD83C\uDFEB ${aOkB?'\u2713':'\u2717'}</span>`;
@@ -2061,14 +2145,17 @@
           row.innerHTML = `
             <div class="hacc-hd" onclick="this.closest('.hacc').classList.toggle('open'); const b=this.closest('.hacc'); if(b.classList.contains('open')) b.querySelectorAll('.hd-sf[data-w]').forEach(el=>el.style.width=el.dataset.w+'%')">
               <div class="hacc-left">
-                <span class="hacc-day">${day.dayName}</span>
-                <span class="hacc-date">${dd}/${dm}</span>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span class="day-medal">${medal}</span>
+                  <span class="hacc-day">${day.dayName}</span>
+                </div>
+                <span class="hacc-date">${dd}/${dm} &bull; ${dayPct}%</span>
               </div>
               <div class="hacc-badges">${mBadge}${aBadge}${eBadge}</div>
               <span class="hacc-arr">&#8250;</span>
             </div>
             <div class="hacc-body">
-              <div class="hacc-sects">${sects}</div>
+              <div class="hacc-sects"><div class="day-cheer">${cheer}</div>${sects}</div>
             </div>`;
 
           list.appendChild(row);
@@ -2388,7 +2475,6 @@
       .withFailureHandler(() => { document.getElementById('attendHistList').innerHTML = '<p style="color:var(--err);text-align:center;padding:28px;">\u05E9\u05D2\u05D9\u05D0\u05D4 \u05D1\u05D8\u05E2\u05D9\u05E0\u05D4</p>'; })
       .getAttendanceHistoryDetailed(currentUser, period);
   };
-  };
 
   /* ── EVENING ROUTINE MODULE ─────────────────────── */
   let eveningData = {};
@@ -2430,13 +2516,18 @@
       const isDone = !!eveningData[task.id];
       if (isDone) done++;
       const card = document.createElement('div');
-      card.className = 'evening-task-card' + (isDone ? ' done' : '');
+            card.className = 'task-card' + (isDone ? ' done' : '');
       card.style.animationDelay = i * 0.08 + 's';
-      card.onclick = () => toggleEveningTask(task.id, !isDone);
       card.innerHTML = `
-        <div class="evening-task-icon">${task.icon}</div>
-        <div class="evening-task-name">${esc(task.title)}</div>
-        <div class="ev-chk"><svg class="ev-chk-mark" viewBox="0 0 24 24" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+        <div class="task-emoji" aria-hidden="true"><span class="ei" style="${ICON_ANIMS[i % ICON_ANIMS.length]}">${esc(task.icon||'•')}</span></div>
+        <div class="task-info">
+          <div class="task-title">${esc(task.title)}</div>
+          <div>${isDone ? '<span class="task-sub sub-done">\u2713 \u05d4\u05d5\u05e9\u05dc\u05dd</span>' : '<span class="task-sub sub-pend">\u05de\u05de\u05ea\u05d9\u05df \u05dc\u05d1\u05d9\u05e6\u05d5\u05e2</span>'}</div>
+        </div>
+        <button type="button" class="chk-btn${isDone?' on':''}" onclick="event.stopPropagation();toggleEveningTask('${esc(task.id)}',${!isDone})">
+          <svg viewBox="0 0 26 26"><circle class="chk-circle" cx="13" cy="13" r="11"/><path class="chk-mark" d="M7 13l4 4 8-8"/></svg>
+        </button>`;
+      card.onclick = () => toggleEveningTask(task.id, !isDone);
       wrap.appendChild(card);
     });
 
@@ -2457,6 +2548,10 @@
   function toggleEveningTask(taskId, done) {
     sound(done ? 'check' : 'uncheck');
     if (done && navigator.vibrate) navigator.vibrate([15, 8, 25]);
+    if (done) {
+      const wrap = document.getElementById('topAvWrap');
+      if (wrap) { wrap.classList.add('ring-pulse'); setTimeout(() => wrap.classList.remove('ring-pulse'), 900); }
+    }
     eveningData[taskId] = done;
     renderEveningTasks();
     google.script.run
