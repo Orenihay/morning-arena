@@ -605,6 +605,26 @@
       0%  { transform: translate(-50%,-50%) scale(0); opacity: 1; }
       100%{ transform: translate(var(--tx), var(--ty)) scale(0.5); opacity: 0; }
     }
+    /* Green flash on task completion */
+    .task-flash {
+      position: fixed; inset: 0; pointer-events: none; z-index: 500;
+      background: radial-gradient(ellipse at center, rgba(0,230,118,.22) 0%, transparent 68%);
+      animation: taskFlash 0.75s ease-out forwards;
+    }
+    @keyframes taskFlash {
+      0%   { opacity: 0; transform: scale(.85); }
+      18%  { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.08); }
+    }
+    /* Card pop on completion */
+    .task-card.just-done {
+      animation: taskPop 0.5s cubic-bezier(.34,1.56,.64,1) forwards;
+    }
+    @keyframes taskPop {
+      0%   { transform: scale(1); }
+      45%  { transform: scale(1.055); }
+      100% { transform: scale(1); }
+    }
 
     /* =============================================
        FINISH BUTTON
@@ -1288,7 +1308,7 @@
   'use strict';
 
   /* ── VERSION ────────────────────────────────────── */
-  const APP_VERSION = '1.9.5';
+  const APP_VERSION = '1.9.6';
   document.addEventListener('DOMContentLoaded', () => { const b = document.getElementById('verBadge'); if(b) b.textContent = 'v' + APP_VERSION; });
 
   /* ── STATE ─────────────────────────────────────── */
@@ -1521,6 +1541,23 @@
     setTimeout(() => sp.remove(), 620);
   }
 
+  /* ── MINI CONFETTI BURST per task ──────────────── */
+  function taskBurst(el) {
+    if (typeof confetti !== 'function') return;
+    const colors = currentUser === 'איתן'
+      ? ['#00e676','#ffffff','#ffb800','#00ff88','#ff6d00']
+      : ['#00d4ff','#ffffff','#7c3aed','#00e676','#ffb800'];
+    const r = el.getBoundingClientRect();
+    const x = (r.left + r.width  / 2) / window.innerWidth;
+    const y = (r.top  + r.height / 2) / window.innerHeight;
+    confetti({ particleCount:40, spread:80, origin:{x,y}, colors, gravity:.75, scalar:.85, ticks:90, startVelocity:28 });
+    // Screen flash
+    const f = document.createElement('div');
+    f.className = 'task-flash';
+    document.body.appendChild(f);
+    setTimeout(() => f.remove(), 800);
+  }
+
   /* ── PARTICLE BURST ────────────────────────────── */
   function burstAt(btn) {
     const angles = [0, 45, 90, 135, 180, 225, 270, 315];
@@ -1558,7 +1595,12 @@
 
     if (next) {
       const btn = document.querySelector(`.chk-btn[data-id="${taskId}"]`);
-      if (btn) burstAt(btn);
+      if (btn) {
+        burstAt(btn);
+        taskBurst(btn);
+        const card = btn.closest('.task-card');
+        if (card) { card.classList.add('just-done'); setTimeout(() => card.classList.remove('just-done'), 500); }
+      }
       const wrap = document.getElementById('topAvWrap');
       if (wrap) {
         wrap.classList.add('ring-pulse');
@@ -2551,6 +2593,8 @@
     if (done) {
       const wrap = document.getElementById('topAvWrap');
       if (wrap) { wrap.classList.add('ring-pulse'); setTimeout(() => wrap.classList.remove('ring-pulse'), 900); }
+      const evBtn = document.querySelector(`.ev-chk[data-id="${taskId}"], .chk-btn[data-id="${taskId}"]`);
+      if (evBtn) taskBurst(evBtn);
     }
     eveningData[taskId] = done;
     renderEveningTasks();
